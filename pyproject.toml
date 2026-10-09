@@ -1,0 +1,37 @@
+[project]
+name = "python-project-386"
+version = "0.1.0"
+description = "Календарь звонков — сервис бронирования звонков (Django)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "django>=5.2,<5.3",
+  "gunicorn>=22,<23",
+  "psycopg2-binary>=2.9",
+  "python-dotenv>=1.0",
+  "whitenoise>=6.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-django>=4",
+  "pytest-cov>=5",
+  "ruff>=0.8",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "python_project_386.settings"
+pythonpath = ["python_project_386"]
+testpaths = ["python_project_386"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.coverage.run]
+source = ["python_project_386"]
+omit = ["*/migrations/*", "*/tests/*", "*/test_*.py", "manage.py", "wsgi.py", "asgi.py"]
