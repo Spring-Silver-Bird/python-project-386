@@ -58,3 +58,13 @@
 - Не убирать обязательные проверки бронирования.
 - Не удалять, не менять и не переименовывать `.github/workflows/hexlet-check.yml` (Hexlet auto-tests) и не переименовывать репозиторий.
 - Не коммитить `.idea/` (локальный шум).
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context layout (one `GLOSSARY.md` + `docs/adr/`). See `docs/agents/domain.md`.
