@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Календарь звонков</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 1rem 0; }
+    .slot { padding: 8px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; background: #e8f5e9; }
+    .slot.taken { background: #f5f5f5; color: #999; cursor: not-allowed; }
+    .slot.sel { outline: 2px solid #1976d2; }
+    form { display: grid; gap: 8px; max-width: 420px; }
+    input, select, button { padding: 8px; font-size: 1rem; }
+    #msg { min-height: 1.5em; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Календарь звонков</h1>
+  <p>Слот — 30 минут, окно — 14 дней, повторная запись на слот запрещена.</p>
+
+  <label>Владелец <select id="owner"></select></label>
+  <label>Тип встречи <select id="etype"></select></label>
+  <label>Дата <input type="date" id="date" value="{{ default_date }}" /></label>
+  <button id="load">Показать слоты</button>
+
+  <div class="grid" id="slots"></div>
+
+  <h2>Бронирование</h2>
+  <form id="book">
+    <input id="guestName" placeholder="Ваше имя" required />
+    <input id="guestEmail" type="email" placeholder="Email" required />
+    <input id="slotStartAt" placeholder="slotStartAt (ISO)" readonly required />
+    <button type="submit">Забронировать</button>
+  </form>
+  <p id="msg"></p>
+
+  <h2>Мои записи</h2>
+  <ul id="my"></ul>
+
+  <script>
+    const owners = {{ owners_json|safe }};
+    const etypes = {{ event_types_json|safe }};
+    const $ = (id) => document.getElementById(id);
+    const ownerSel = $("owner"), etypeSel = $("etype");
+
+    owners.forEach(o => {
+      const el = document.createElement("option");
+      el.value = o.id; el.textContent = `${o.name} <${o.email}>`;
+      ownerSel.appendChild(el);
+    });
+    function fillEtypes() {
+      etypeSel.innerHTML = "";
+      etypes.filter(e => e.owner_id == ownerSel.value).forEach(e => {
+        const el = document.createElement("option");
+        el.value = e.id; el.textContent = `${e.title} (${e.duration_minutes} мин)`;
+        etypeSel.appendChild(el);
+      });
+    }
+    ownerSel.onchange = fillEtypes; fillEtypes();
+
+    async function loadSlots() {
+      const p = new URLSearchParams({
+        owner_id: ownerSel.value, event_type_id: etypeSel.value, date: $("date").value,
+      });
+      const r = await fetch(`/api/slots/?${p}`);
+      const data = await r.json();
+      const box = $("slots"); box.innerHTML = "";
+      if (!r.ok) { $("msg").textContent = data.error || "ошибка"; return; }
+      data.forEach(s => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "slot" + (s.isAvailable ? "" : " taken");
+        b.textContent = new Date(s.startAt).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+        b.disabled = !s.isAvailable;
+        b.onclick = () => {
+          document.querySelectorAll(".slot").forEach(x => x.classList.remove("sel"));
+          b.classList.add("sel");
+          $("slotStartAt").value = s.startAt;
+        };
+        box.appendChild(b);
+      });
+      loadMine();
+    }
+
+    async function loadMine() {
+      const r = await fetch(`/api/bookings/?owner_id=${ownerSel.value}`);
+      const data = await r.json();
+      const ul = $("my"); ul.innerHTML = "";
+      data.filter(b => b.status === "confirmed").forEach(b => {
+        const li = document.createElement("li");
+        li.textContent = `${b.slotStartAt} — ${b.guestName} (${b.guestEmail}) `;
+        const c = document.createElement("button");
+        c.textContent = "отменить"; c.type = "button";
+        c.onclick = async () => {
+          await fetch(`/api/bookings/${b.id}/cancel/`, {method: "POST"});
+          loadSlots();
+        };
+        li.appendChild(c); ul.appendChild(li);
+      });
+    }
+
+    $("load").onclick = loadSlots;
+    $("book").onsubmit = async (e) => {
+      e.preventDefault();
+      const body = {
+        event_type_id: Number(etypeSel.value),
+        slotStartAt: $("slotStartAt").value,
+        guestName: $("guestName").value,
+        guestEmail: $("guestEmail").value,
+      };
+      const r = await fetch("/api/bookings/", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      $("msg").textContent = r.ok ? `Готово! ID ${data.id}` : `Ошибка: ${data.error}`;
+      if (r.ok) loadSlots();
+    };
+    loadSlots();
+  </script>
+</body>
+</html>

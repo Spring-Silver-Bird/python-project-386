@@ -1,0 +1,229 @@
+openapi: 3.0.3
+info:
+  title: Call Calendar API
+  version: 0.1.0
+  description: >-
+    Сервис бронирования звонков. Слот — 30 минут по сетке :00/:30
+    (ADR-0001). Окно записи — 14 дней от текущей даты по Europe/Moscow
+    (ADR-0002). Одна активная запись на owner + slotStartAt (ADR-0003).
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /:
+    get:
+      summary: UI календаря (Django-templates)
+      responses:
+        "200":
+          description: HTML-страница
+  /api/owners/:
+    get:
+      summary: Список владельцев
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Owner"
+  /api/event-types/:
+    get:
+      summary: Список типов встреч
+      parameters:
+        - in: query
+          name: owner_id
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventType"
+  /api/slots/:
+    get:
+      summary: Слоты на дату (generate on the fly)
+      parameters:
+        - in: query
+          name: owner_id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: event_type_id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: date
+          required: true
+          description: YYYY-MM-DD (Europe/Moscow), в пределах 14 дней
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Slot"
+        "400":
+          description: Дата вне окна / неверный формат
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/bookings/:
+    get:
+      summary: Список записей
+      parameters:
+        - in: query
+          name: owner_id
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      summary: Создать запись
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Валидация (сетка/слот/окно/email)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Слот уже занят
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/bookings/{id}/cancel/:
+    post:
+      summary: Отменить запись
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Owner:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    EventType:
+      type: object
+      required: [id, owner_id, title, duration_minutes]
+      properties:
+        id:
+          type: integer
+        owner_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        duration_minutes:
+          type: integer
+          enum: [30]
+    Slot:
+      type: object
+      required: [startAt, endAt, isAvailable]
+      properties:
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        isAvailable:
+          type: boolean
+    Booking:
+      type: object
+      required: [id, event_type_id, owner_id, slotStartAt, guestName, guestEmail, status]
+      properties:
+        id:
+          type: integer
+        event_type_id:
+          type: integer
+        owner_id:
+          type: integer
+        slotStartAt:
+          type: string
+          format: date-time
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [confirmed, cancelled]
+    BookingCreate:
+      type: object
+      required: [event_type_id, slotStartAt, guestName, guestEmail]
+      properties:
+        event_type_id:
+          type: integer
+        slotStartAt:
+          type: string
+          format: date-time
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+          format: email
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
