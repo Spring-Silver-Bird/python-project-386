@@ -43,6 +43,7 @@
 - `make test` — прогнать тесты (`pytest --cov --cov-report=term --cov-fail-under=80`)
 - `make docker-build` — собрать Docker-образ; `make docker-up` — поднять бэкенд (+Postgres) в Docker
 - Проверки после изменений: `make test`, `make lint` (`ruff check .` + `ruff format --check .`), `make check` (`manage.py check`)
+- Коммиты — только Conventional Commits (`feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`, `refactor: ...`, `test: ...`, `ci: ...`): этого требует `release-please` — после мержа в `main` он сам создаёт release-PR
 
 ## 7. Что делать агенту
 
