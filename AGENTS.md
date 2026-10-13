@@ -30,7 +30,7 @@
 ## 5. Структура репозитория
 
 - Django-проект — `python_project_386/` (там `manage.py`); внутренний пакет `python_project_386/python_project_386/` (`settings.py`, `urls.py`, `wsgi.py`). Приложений проекта пока нет — только `django.contrib.*`.
-- Контракт — `contract/openapi.yaml`. Если файл отсутствует, уточнить у пользователя, не выдумывать эндпоинты.
+- Контракт — `contract/openapi.yaml` (источник истины) + TypeSpec-проекция: вход `contract/calendar.tsp`, части — в `contract/calendar/` (сущности, операции, ошибки). Оба файла обязаны совпадать; расхождения — только синхронным обновлением. Если файла нет, уточнить у пользователя, не выдумывать эндпоинты.
 - Тесты — `python_project_386/tests/` (pytest).
 - Docker-файлы — `Dockerfile` и `docker-compose.yml` в корне репозитория.
 
