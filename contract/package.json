@@ -1,0 +1,12 @@
+{
+  "name": "call-calendar-contract",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TypeSpec contract toolchain: generates contract/openapi.yaml, nothing else",
+  "devDependencies": {
+    "@typespec/compiler": "^1.17.0",
+    "@typespec/http": "^1.17.0",
+    "@typespec/openapi3": "^1.17.0",
+    "@typespec/versioning": "^0.87.0"
+  }
+}

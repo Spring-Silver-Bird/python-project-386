@@ -11,11 +11,3 @@ model EventType {
   /** Только 30, другие длительности не поддерживаются. */
   duration_minutes: 30;
 }
-
-@doc("Тело создания типа встречи (НОВЫЙ эндпоинт, см. DELTA в calendar.tsp).")
-model EventTypeCreate {
-  owner_id: int32;
-  title: string;
-  description?: string;
-  duration_minutes: 30;
-}

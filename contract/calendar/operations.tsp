@@ -26,15 +26,6 @@ interface EventTypes {
   @get
   @summary("Список типов встреч")
   list(@query owner_id?: int32): EventType[];
-
-  @post
-  @summary("Создание типа встречи (НОВЫЙ эндпоинт, см. DELTA в calendar.tsp)")
-  create(@body body: EventTypeCreate): CreatedEventType | BadRequest;
-
-  @get
-  @route("{id}/")
-  @summary("Детали типа встречи (НОВЫЙ эндпоинт, см. DELTA в calendar.tsp)")
-  get(@path id: int32): EventType | NotFound;
 }
 
 @route("/api/slots/")

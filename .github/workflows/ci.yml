@@ -34,3 +34,20 @@ jobs:
         run: uv run ruff check .
       - name: Ruff format
         run: uv run ruff format --check .
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install contract toolchain
+        working-directory: contract
+        run: npm ci --no-audit --no-fund
+      - name: Emit OpenAPI and check freshness
+        working-directory: contract
+        run: |
+          npx tsp compile calendar.tsp --emit @typespec/openapi3
+          cp tsp-output/@typespec/openapi3/openapi.*.yaml openapi.yaml
+          git diff --exit-code openapi.yaml

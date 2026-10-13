@@ -5,18 +5,15 @@
 // синхронным обновлением обоих файлов (AGENTS.md §3).
 //
 // Раскладка:
-//   contract/calendar.tsp             — вход: info, правила, подключение частей
+//   contract/calendar.tsp             — вход: info, версия, правила, подключение частей
 //   contract/calendar/owner.tsp       — сущность Owner
-//   contract/calendar/event-type.tsp  — сущность EventType (+ тело создания)
+//   contract/calendar/event-type.tsp  — сущность EventType
 //   contract/calendar/slot.tsp        — сущность Slot
 //   contract/calendar/booking.tsp     — сущность Booking (+ тело создания)
 //   contract/calendar/errors.tsp      — ошибки и общие типы ответов
 //   contract/calendar/operations.tsp  — операции/эндпоинты
 //
-// DELTA: двух операций НЕТ ни в openapi.yaml, ни в реализации:
-//   - GET  /api/event-types/{id}/  (детали типа встречи)
-//   - POST /api/event-types/       (создание типа встречи)
-// Требуется: дописать openapi.yaml + views/urls/store + тесты.
+// Скоуп v1 (спека #8): CRUD для Owner/EventType НЕ вводится, сиды фиксированы.
 
 import "./calendar/owner.tsp";
 import "./calendar/event-type.tsp";
@@ -25,8 +22,10 @@ import "./calendar/booking.tsp";
 import "./calendar/errors.tsp";
 import "./calendar/operations.tsp";
 import "@typespec/http";
+import "@typespec/versioning";
 
 using Http;
+using Versioning;
 
 // ─── info / metadata ─────────────────────────────────────────────
 
@@ -36,8 +35,13 @@ using Http;
   }
 )
 @server("http://127.0.0.1:8000", "local")
-@doc("Версия API: 0.1.0 (синхронно с info.version в openapi.yaml).")
+@versioned(Versions)
 namespace CallCalendar;
+
+@doc("Версии API.")
+enum Versions {
+  v1: "0.1.0",
+}
 
 // ─── validators / rules ──────────────────────────────────────────
 // Серверные проверки (реализация: calendar_store.py; решения: docs/adr/).

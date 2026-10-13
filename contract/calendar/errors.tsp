@@ -7,7 +7,7 @@ using Http;
 namespace CallCalendar;
 
 @doc("Общая ошибка API: { error: string }.")
-model ErrorBody {
+model Error {
   error: string;
 }
 
@@ -15,21 +15,21 @@ model ErrorBody {
 @doc("400 — ошибка валидации (сетка/слот/окно/email).")
 model BadRequest {
   @statusCode statusCode: 400;
-  @body body: ErrorBody;
+  @body body: Error;
 }
 
 @error
 @doc("404 — не найдено.")
 model NotFound {
   @statusCode statusCode: 404;
-  @body body: ErrorBody;
+  @body body: Error;
 }
 
 @error
 @doc("409 — слот уже занят.")
 model SlotConflict {
   @statusCode statusCode: 409;
-  @body body: ErrorBody;
+  @body body: Error;
 }
 
 // Общие типы успешных ответов с нестандартным статусом.
@@ -38,10 +38,4 @@ model SlotConflict {
 model CreatedBooking {
   @statusCode statusCode: 201;
   @body body: Booking;
-}
-
-@doc("201 — тип встречи создан.")
-model CreatedEventType {
-  @statusCode statusCode: 201;
-  @body body: EventType;
 }
