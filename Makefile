@@ -43,7 +43,7 @@ sdk:
 	cd contract && npx esbuild sdk-entry.ts --bundle --minify --format=iife --banner:js='/* Generated: openapi.yaml -> sdk/ -> esbuild. DO NOT EDIT, run make generate. */' --outfile=../python_project_386/static/js/calendar-sdk.js
 
 server-types:
-	uv run datamodel-codegen --input contract/openapi.yaml --input-file-type openapi --output python_project_386/contract_gen/models.py --output-model-type pydantic_v2.BaseModel
+	uv run datamodel-codegen --input contract/openapi.yaml --input-file-type openapi --output python_project_386/contract_gen/models.py --output-model-type pydantic_v2.BaseModel --disable-timestamp
 
 generate: contract sdk server-types
 
