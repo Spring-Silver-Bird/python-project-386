@@ -50,7 +50,8 @@ enum Versions {
 //
 // 1. Слот 30 минут (ADR-0001): старт только :00/:30, секунды 0;
 //    EventType.duration_minutes обязан быть 30.
-// 2. Окно 14 дней (ADR-0002): слоты — дата в [today, today + 14] (Europe/Moscow);
-//    бронь — старт в [now − 1 мин, now + 14 дней].
+// 2. Окно 14 дней (ADR-0002): календарными днями [today, today + 14]
+//    (Europe/Moscow) одинаково для просмотра и брони; прошлое отклоняется;
+//    наивный date-time трактуется как Europe/Moscow.
 // 3. Уникальность слота (ADR-0003): один confirmed Booking на owner + slotStartAt;
 //    повтор → 409; cancelled слот не блокирует.

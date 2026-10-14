@@ -41,6 +41,7 @@ paths:
     post:
       operationId: Bookings_create
       summary: Создание бронирования
+      description: Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
       parameters: []
       responses:
         '201':
@@ -130,7 +131,7 @@ paths:
     get:
       operationId: Slots_list
       summary: Доступные слоты
-      description: date — YYYY-MM-DD (Europe/Moscow) в пределах 14 дней (ADR-0002).
+      description: date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false.
       parameters:
         - name: owner_id
           in: query

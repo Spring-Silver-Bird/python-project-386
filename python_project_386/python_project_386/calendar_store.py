@@ -68,9 +68,11 @@ def parse_moscow_dt(value: str) -> datetime | None:
 def validate_slot_start(dt: datetime, now: datetime) -> str | None:
     if dt.minute not in (0, 30) or dt.second != 0 or dt.microsecond != 0:
         return "slot must start at :00 or :30"
-    earliest = now - timedelta(minutes=1)
-    latest = now + timedelta(days=WINDOW_DAYS)
-    if dt < earliest or dt > latest:
+    if dt <= now:
+        return "slot is in the past"
+    today = now.date()
+    latest = today + timedelta(days=WINDOW_DAYS)
+    if dt.date() < today or dt.date() > latest:
         return "slot outside 14-day window"
     return None
 
@@ -129,13 +131,13 @@ def create_booking(
     return booking, None, 201
 
 
-def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime) -> list[dict]:
+def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime, now: datetime) -> list[dict]:
     slots = []
     for hour in range(WORK_START_HOUR, WORK_END_HOUR):
         for minute in (0, 30):
             start = day.replace(hour=hour, minute=minute, second=0, microsecond=0)
             end = start + timedelta(minutes=30)
-            taken = is_slot_taken(owner_id, start)
+            taken = is_slot_taken(owner_id, start) or start <= now
             slots.append(
                 {
                     "startAt": start.isoformat(),

@@ -71,12 +71,12 @@ def api_slots(request):
     event = get_event_type(event_type_id)
     if event is None or event["owner_id"] != owner_id:
         return JsonResponse({"error": "unknown event type for owner"}, status=400)
-    today = timezone.now().astimezone(MOSCOW_TZ).date()
-    delta = (day_date - today).days
+    today = timezone.now().astimezone(MOSCOW_TZ)
+    delta = (day_date - today.date()).days
     if delta < 0 or delta > WINDOW_DAYS:
         return JsonResponse({"error": "date outside 14-day window"}, status=400)
     day = datetime(day_date.year, day_date.month, day_date.day, tzinfo=MOSCOW_TZ)
-    return JsonResponse(build_slots_for_date(owner_id, event_type_id, day), safe=False)
+    return JsonResponse(build_slots_for_date(owner_id, event_type_id, day, today), safe=False)
 
 
 @require_GET

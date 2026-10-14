@@ -1,9 +1,9 @@
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from django.utils import timezone
-from python_project_386.calendar_store import MOSCOW_TZ, reset_store
+from python_project_386.calendar_store import MOSCOW_TZ, reset_store, validate_slot_start
 
 
 @pytest.fixture(autouse=True)
@@ -98,3 +98,38 @@ def test_cancel_frees_slot(client):
     assert client.post(f"/api/bookings/{bid}/cancel/").status_code == 200
     # повторная бронь того же слота после отмены — ок
     assert book(client).status_code == 201
+
+
+def test_slots_mark_past_today_as_taken(client):
+    now = moscow_now()
+    today = now.date().isoformat()
+    r = client.get(f"/api/slots/?owner_id=1&event_type_id=1&date={today}")
+    assert r.status_code == 200
+    assert len(r.json()) == 18
+    for s in r.json():
+        start = datetime.fromisoformat(s["startAt"])
+        if start <= now:
+            assert s["isAvailable"] is False
+
+
+def test_booking_window_is_calendar_days():
+    now = moscow_now()
+    edge = (now + timedelta(days=14)).replace(hour=10, minute=0, second=0, microsecond=0)
+    assert validate_slot_start(edge, now) is None
+    far = (now + timedelta(days=15)).replace(hour=10, minute=0, second=0, microsecond=0)
+    assert validate_slot_start(far, now) == "slot outside 14-day window"
+    base = now - timedelta(hours=2)
+    past = base.replace(minute=0 if base.minute < 30 else 30, second=0, microsecond=0)
+    assert validate_slot_start(past, now) == "slot is in the past"
+
+
+def test_booking_window_http(client):
+    assert book(client, slotStartAt=slot_iso(days_ahead=14, hour=10)).status_code == 201
+    assert book(client, slotStartAt=slot_iso(days_ahead=15, hour=11)).status_code == 400
+    assert book(client, slotStartAt=slot_iso(days_ahead=-1)).status_code == 400
+
+
+def test_booking_accepts_naive_moscow_datetime(client):
+    naive = slot_iso(days_ahead=2).split("+")[0]
+    assert "Z" not in naive
+    assert book(client, slotStartAt=naive).status_code == 201

@@ -32,7 +32,7 @@ interface EventTypes {
 interface Slots {
   @get
   @summary("Доступные слоты")
-  @doc("date — YYYY-MM-DD (Europe/Moscow) в пределах 14 дней (ADR-0002).")
+  @doc("date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false.")
   list(
     @query owner_id: int32,
     @query event_type_id: int32,
@@ -48,6 +48,7 @@ interface Bookings {
 
   @post
   @summary("Создание бронирования")
+  @doc("Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.")
   create(@body body: BookingCreate): CreatedBooking | BadRequest | SlotConflict;
 
   @post

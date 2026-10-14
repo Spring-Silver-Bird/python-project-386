@@ -32,6 +32,8 @@ export const bookingsList = <ThrowOnError extends boolean = false>(options?: Opt
 
 /**
  * Создание бронирования
+ *
+ * Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
  */
 export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Options<BookingsCreateData, ThrowOnError>): RequestResult<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError> => (options.client ?? client).post<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError>({
     url: '/api/bookings/',
@@ -60,6 +62,6 @@ export const ownersList = <ThrowOnError extends boolean = false>(options?: Optio
 /**
  * Доступные слоты
  *
- * date — YYYY-MM-DD (Europe/Moscow) в пределах 14 дней (ADR-0002).
+ * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false.
  */
 export const slotsList = <ThrowOnError extends boolean = false>(options: Options<SlotsListData, ThrowOnError>): RequestResult<SlotsListResponses, SlotsListErrors, ThrowOnError> => (options.client ?? client).get<SlotsListResponses, SlotsListErrors, ThrowOnError>({ url: '/api/slots/', ...options });
