@@ -1,4 +1,4 @@
-.PHONY: install start dev migrate test lint lint-fix check contract docker-build docker-up docker-down collectstatic
+.PHONY: install start dev migrate test lint lint-fix check contract sdk server-types generate docker-build docker-up docker-down collectstatic
 
 install:
 	uv sync
@@ -35,6 +35,17 @@ contract:
 	cd contract && npx tsp compile calendar.tsp --emit @typespec/openapi3
 	# @versioned emitter writes openapi.<version>.yaml; single version expected
 	cp contract/tsp-output/@typespec/openapi3/openapi.*.yaml contract/openapi.yaml
+
+sdk:
+	node -e "const m=process.version.match(/v(\d+)/); if (+m[1] < 22) { console.error('sdk needs Node >= 22, current ' + process.version + ' (try: nvm use 22)'); process.exit(1); }"
+	cd contract && npm ci --no-audit --no-fund
+	cd contract && npx openapi-ts
+	cd contract && npx esbuild sdk-entry.ts --bundle --minify --format=iife --banner:js='/* Generated: openapi.yaml -> sdk/ -> esbuild. DO NOT EDIT, run make generate. */' --outfile=../python_project_386/static/js/calendar-sdk.js
+
+server-types:
+	uv run datamodel-codegen --input contract/openapi.yaml --input-file-type openapi --output python_project_386/contract_gen/models.py --output-model-type pydantic_v2.BaseModel
+
+generate: contract sdk server-types
 
 docker-build:
 	docker compose build

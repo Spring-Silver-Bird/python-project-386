@@ -49,7 +49,9 @@ def book(client, **over):
 def test_index_renders_calendar(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert "Календарь звонков" in r.content.decode()
+    content = r.content.decode()
+    assert "Календарь звонков" in content
+    assert "calendar-sdk" in content  # фронтенд пользуется сгенерированным SDK
 
 
 def test_owners_and_event_types(client):

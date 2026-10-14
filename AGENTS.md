@@ -30,7 +30,7 @@
 ## 5. Структура репозитория
 
 - Django-проект — `python_project_386/` (там `manage.py`); внутренний пакет `python_project_386/python_project_386/` (`settings.py`, `urls.py`, `wsgi.py`). Приложений проекта пока нет — только `django.contrib.*`.
-- Контракт — TypeSpec: вход `contract/calendar.tsp`, части — в `contract/calendar/` (сущности, операции, ошибки); это источник истины. `contract/openapi.yaml` генерируется из него (`make contract`), руками не правится. Если файла нет, уточнить у пользователя, не выдумывать эндпоинты.
+- Контракт — TypeSpec: вход `contract/calendar.tsp`, части — в `contract/calendar/` (сущности, операции, ошибки); это источник истины. Генерация одной командой `make generate`: TypeSpec → `contract/openapi.yaml` → TS SDK (`contract/sdk/`) + бандл (`python_project_386/static/js/calendar-sdk.js`) + серверные типы (`python_project_386/contract_gen/`). Сгенерированное руками не правится. Если файла нет, уточнить у пользователя, не выдумывать эндпоинты.
 - Тесты — `python_project_386/tests/` (pytest).
 - Docker-файлы — `Dockerfile` и `docker-compose.yml` в корне репозитория.
 
@@ -42,6 +42,7 @@
 - `make dev` — запустить проект в dev-режиме (`runserver` на `127.0.0.1:8000`); `make start` — то же через `gunicorn`
 - `make test` — прогнать тесты (`pytest --cov --cov-report=term --cov-fail-under=80`)
 - `make contract` — сгенерировать `contract/openapi.yaml` из TypeSpec (требуется Node >= 22)
+- `make generate` — вся цепочка: `contract` → TS SDK + бандл → серверные типы (pydantic)
 - `make docker-build` — собрать Docker-образ; `make docker-up` — поднять бэкенд (+Postgres) в Docker
 - Проверки после изменений: `make test`, `make lint` (`ruff check .` + `ruff format --check .`), `make check` (`manage.py check`)
 - Коммиты — только Conventional Commits (`feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`, `refactor: ...`, `test: ...`, `ci: ...`): этого требует `release-please` — после мержа в `main` он сам создаёт release-PR

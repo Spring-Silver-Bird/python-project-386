@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="ru">
 <head>
@@ -38,7 +39,9 @@
   <h2>Мои записи</h2>
   <ul id="my"></ul>
 
+<script src="{% static 'js/calendar-sdk.js' %}"></script>
   <script>
+    const api = window.CalendarSDK;
     const owners = {{ owners_json|safe }};
     const etypes = {{ event_types_json|safe }};
     const $ = (id) => document.getElementById(id);
@@ -60,13 +63,11 @@
     ownerSel.onchange = fillEtypes; fillEtypes();
 
     async function loadSlots() {
-      const p = new URLSearchParams({
-        owner_id: ownerSel.value, event_type_id: etypeSel.value, date: $("date").value,
-      });
-      const r = await fetch(`/api/slots/?${p}`);
-      const data = await r.json();
+      const { data, error } = await api.slotsList({ query: {
+        owner_id: Number(ownerSel.value), event_type_id: Number(etypeSel.value), date: $("date").value,
+      } });
       const box = $("slots"); box.innerHTML = "";
-      if (!r.ok) { $("msg").textContent = data.error || "ошибка"; return; }
+      if (error || !data) { $("msg").textContent = (error && error.error) || "ошибка"; return; }
       data.forEach(s => {
         const b = document.createElement("button");
         b.type = "button";
@@ -84,16 +85,15 @@
     }
 
     async function loadMine() {
-      const r = await fetch(`/api/bookings/?owner_id=${ownerSel.value}`);
-      const data = await r.json();
+      const { data } = await api.bookingsList({ query: { owner_id: Number(ownerSel.value) } });
       const ul = $("my"); ul.innerHTML = "";
-      data.filter(b => b.status === "confirmed").forEach(b => {
+      (data || []).filter(b => b.status === "confirmed").forEach(b => {
         const li = document.createElement("li");
         li.textContent = `${b.slotStartAt} — ${b.guestName} (${b.guestEmail}) `;
         const c = document.createElement("button");
         c.textContent = "отменить"; c.type = "button";
         c.onclick = async () => {
-          await fetch(`/api/bookings/${b.id}/cancel/`, {method: "POST"});
+          await api.bookingsCancel({ path: { id: b.id } });
           loadSlots();
         };
         li.appendChild(c); ul.appendChild(li);
@@ -109,13 +109,9 @@
         guestName: $("guestName").value,
         guestEmail: $("guestEmail").value,
       };
-      const r = await fetch("/api/bookings/", {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body),
-      });
-      const data = await r.json();
-      $("msg").textContent = r.ok ? `Готово! ID ${data.id}` : `Ошибка: ${data.error}`;
-      if (r.ok) loadSlots();
+      const { data, error } = await api.bookingsCreate({ body });
+      $("msg").textContent = data ? `Готово! ID ${data.id}` : `Ошибка: ${(error && error.error) || "ошибка"}`;
+      if (data) loadSlots();
     };
     loadSlots();
   </script>
