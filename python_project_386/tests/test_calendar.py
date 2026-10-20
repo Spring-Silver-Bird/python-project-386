@@ -81,9 +81,13 @@ def test_index_renders_frontend_shell_without_seed_data(client):
         "my",
         "ownerTypes",
         "createType",
+        "eventTypeTitle",
+        "eventTypeDescription",
+        "eventTypeDuration",
         "ownerBookings",
     ):
         assert f'id="{element_id}"' in content
+    assert '<option value="30">' in content
     # Данные приходят только из API, сервер их в HTML не встраивает.
     assert "Алекс" not in content
     assert "alex@example.com" not in content
@@ -127,6 +131,28 @@ def test_frontend_app_wires_sdk_operations():
     )
     for operation in operations:
         assert operation in script
+
+
+def test_frontend_owner_scenario_fields():
+    path = finders.find("app.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    for fragment in (
+        "eventType.title",
+        "eventType.description",
+        "eventType.duration_minutes",
+        'Number($("eventTypeDuration").value)',
+        "booking.guestName",
+        "booking.guestEmail",
+        "booking.slotStartAt",
+        "eventTypeTitle(booking.event_type_id)",
+        "statusLabel(booking.status)",
+        "подтверждена",
+        "Предстоящих встреч нет",
+        "слот уже занят",
+    ):
+        assert fragment in script, fragment
 
 
 def test_frontend_reports_booking_success_after_reloading_slots():

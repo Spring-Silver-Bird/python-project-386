@@ -27,7 +27,11 @@
 
   function errorText(result, fallback) {
     if (result && result.error) {
-      return result.error.error || fallback;
+      var message = result.error.error || fallback;
+      var translated = {
+        "slot already booked": "слот уже занят",
+      };
+      return translated[message] || message;
     }
     return fallback;
   }
@@ -69,6 +73,16 @@
       return eventType.id === eventTypeId;
     })[0];
     return found ? found.title : "Тип №" + eventTypeId;
+  }
+
+  function statusLabel(status) {
+    if (status === "confirmed") {
+      return "подтверждена";
+    }
+    if (status === "cancelled") {
+      return "отменена";
+    }
+    return status;
   }
 
   function fillOwners(items) {
@@ -137,7 +151,9 @@
         " <" +
         booking.guestEmail +
         "> — " +
-        eventTypeTitle(booking.event_type_id);
+        eventTypeTitle(booking.event_type_id) +
+        " — " +
+        statusLabel(booking.status);
       ownerBookingsList.appendChild(item);
     });
   }
@@ -301,7 +317,7 @@
     var body = {
       owner_id: Number(ownerSel.value),
       title: $("eventTypeTitle").value,
-      duration_minutes: 30,
+      duration_minutes: Number($("eventTypeDuration").value),
     };
     if (description.trim()) {
       body.description = description;
