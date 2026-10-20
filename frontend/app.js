@@ -73,7 +73,7 @@
     var eventTypeId = Number(etypeSel.value);
     slotsBox.innerHTML = "";
     if (!ownerId || !eventTypeId || !dateInput.value) {
-      return;
+      return false;
     }
     var result = await api.slotsList({
       query: {
@@ -84,7 +84,7 @@
     });
     if (result.error || !result.data) {
       setMessage(errorText(result, "Не удалось загрузить слоты"));
-      return;
+      return false;
     }
     setMessage("");
     result.data.forEach(function (slot) {
@@ -104,6 +104,7 @@
       slotsBox.appendChild(button);
     });
     await loadBookings();
+    return true;
   }
 
   async function loadBookings() {
@@ -188,10 +189,15 @@
       setMessage("Ошибка: " + errorText(result, "не удалось создать запись"));
       return;
     }
-    setMessage("Готово! ID " + result.data.id);
+    var bookingId = result.data.id;
     slotInput.value = "";
     form.reset();
-    await loadSlots();
+    var reloaded = await loadSlots();
+    setMessage(
+      reloaded
+        ? "Готово! Запись №" + bookingId + " создана"
+        : "Запись №" + bookingId + " создана, но слоты не удалось обновить"
+    );
   };
 
   init();
