@@ -54,6 +54,9 @@ def test_index_renders_frontend_shell_without_seed_data(client):
     assert "Календарь звонков" in content
     assert "calendar-sdk" in content  # фронтенд пользуется сгенерированным SDK
     assert "app.js" in content
+    # UI даёт выбрать владельца/тип/дату/слот, забронировать и увидеть свои записи.
+    for element_id in ("owner", "etype", "date", "slots", "book", "guestName", "guestEmail", "my"):
+        assert f'id="{element_id}"' in content
     # Данные приходят только из API, сервер их в HTML не встраивает.
     assert "Алекс" not in content
     assert "alex@example.com" not in content
@@ -63,6 +66,24 @@ def test_index_renders_frontend_shell_without_seed_data(client):
 def test_frontend_assets_are_discoverable():
     assert finders.find("app.js") is not None
     assert finders.find("app.css") is not None
+
+
+def test_sdk_bundle_exposes_calendar_operations():
+    path = finders.find("js/calendar-sdk.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as bundle_file:
+        bundle = bundle_file.read()
+    for operation in ("ownersList", "eventTypesList", "slotsList", "bookingsCreate", "bookingsCancel"):
+        assert operation in bundle
+
+
+def test_frontend_app_wires_sdk_operations():
+    path = finders.find("app.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    for operation in ("ownersList", "eventTypesList", "slotsList", "bookingsCreate", "bookingsCancel"):
+        assert operation in script
 
 
 def test_owners_and_event_types(client):
@@ -225,3 +246,66 @@ def test_wrong_method_returns_error_envelope(client, method, url):
     r = getattr(client, method)(url)
     assert r.status_code == 405
     assert set(r.json()) == {"error"}
+
+
+def test_guest_happy_path_end_to_end(client):
+    owner_id = client.get("/api/owners/").json()[0]["id"]
+    event_type_id = client.get(f"/api/event-types/?owner_id={owner_id}").json()[0]["id"]
+    day = (moscow_now() + timedelta(days=1)).date().isoformat()
+    slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id={event_type_id}&date={day}"
+    chosen = next(s for s in client.get(slots_url).json() if s["isAvailable"])["startAt"]
+
+    created = book(client, event_type_id=event_type_id, slotStartAt=chosen)
+    assert created.status_code == 201
+    booking = created.json()
+    assert booking["status"] == "confirmed"
+
+    after_booking = {s["startAt"]: s for s in client.get(slots_url).json()}
+    assert after_booking[chosen]["isAvailable"] is False
+    assert book(client, event_type_id=event_type_id, slotStartAt=chosen).status_code == 409
+    assert [b["id"] for b in client.get(f"/api/bookings/?owner_id={owner_id}").json()] == [booking["id"]]
+
+    assert client.post(f"/api/bookings/{booking['id']}/cancel/").status_code == 200
+    after_cancel = {s["startAt"]: s for s in client.get(slots_url).json()}
+    assert after_cancel[chosen]["isAvailable"] is True
+    assert book(client, event_type_id=event_type_id, slotStartAt=chosen).status_code == 201
+
+
+@pytest.mark.parametrize("guest_name", [None, 123])
+def test_booking_requires_string_guest_name(client, guest_name):
+    r = book(client, guestName=guest_name)
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+    assert client.get("/api/bookings/?owner_id=1").json() == []
+
+
+@pytest.mark.parametrize("guest_name", ["", "   "])
+def test_booking_rejects_blank_guest_name(client, guest_name):
+    r = book(client, guestName=guest_name)
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+
+
+@pytest.mark.parametrize("guest_email", [None, 123])
+def test_booking_requires_string_guest_email(client, guest_email):
+    r = book(client, guestEmail=guest_email)
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+
+
+def test_booking_rejects_non_object_json(client):
+    r = client.post("/api/bookings/", data=json.dumps([1, 2]), content_type="application/json")
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+
+
+@pytest.mark.parametrize(("hour", "minute"), [(8, 30), (18, 0), (20, 0)])
+def test_booking_rejects_outside_working_hours(client, hour, minute):
+    r = book(client, slotStartAt=slot_iso(days_ahead=2, hour=hour, minute=minute))
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+
+
+@pytest.mark.parametrize(("hour", "minute"), [(9, 0), (17, 30)])
+def test_booking_accepts_working_hours_boundaries(client, hour, minute):
+    assert book(client, slotStartAt=slot_iso(days_ahead=2, hour=hour, minute=minute)).status_code == 201

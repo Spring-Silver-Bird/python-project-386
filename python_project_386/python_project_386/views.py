@@ -111,19 +111,25 @@ def api_bookings_create(request):
         payload = json.loads(request.body.decode("utf-8") or "{}")
     except (json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse({"error": "invalid JSON"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "invalid JSON body"}, status=400)
     try:
         event_type_id = int(payload.get("event_type_id", ""))
-    except ValueError:
+    except (TypeError, ValueError):
         return JsonResponse({"error": "event_type_id required"}, status=400)
     slot_raw = payload.get("slotStartAt", "")
     slot_start = parse_moscow_dt(slot_raw) if isinstance(slot_raw, str) else None
     if slot_start is None:
         return JsonResponse({"error": "invalid slotStartAt"}, status=400)
+    guest_name = payload.get("guestName")
+    guest_email = payload.get("guestEmail")
+    if not isinstance(guest_name, str) or not isinstance(guest_email, str):
+        return JsonResponse({"error": "guestName/guestEmail required"}, status=400)
     booking, err, status = create_booking(
         event_type_id=event_type_id,
         slot_start=slot_start,
-        guest_name=str(payload.get("guestName", "")),
-        guest_email=str(payload.get("guestEmail", "")),
+        guest_name=guest_name,
+        guest_email=guest_email,
         now=timezone.now().astimezone(MOSCOW_TZ),
     )
     if err:

@@ -50,7 +50,7 @@ interface Bookings {
 
   @post
   @summary("Создание бронирования")
-  @doc("Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.")
+  @doc("Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.")
   create(@body body: BookingCreate): CreatedBooking | BadRequest | SlotConflict | MethodNotAllowed;
 
   @post

@@ -35,7 +35,7 @@ export const bookingsList = <ThrowOnError extends boolean = false>(options?: Opt
 /**
  * Создание бронирования
  *
- * Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
+ * Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
  */
 export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Options<BookingsCreateData, ThrowOnError>): RequestResult<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError> => (options.client ?? client).post<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError>({
     url: '/api/bookings/',

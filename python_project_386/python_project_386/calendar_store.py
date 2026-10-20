@@ -72,6 +72,8 @@ def parse_moscow_dt(value: str) -> datetime | None:
 def validate_slot_start(dt: datetime, now: datetime) -> str | None:
     if dt.minute not in (0, 30) or dt.second != 0 or dt.microsecond != 0:
         return "slot must start at :00 or :30"
+    if dt.hour < WORK_START_HOUR or dt.hour >= WORK_END_HOUR:
+        return "slot outside working hours"
     if dt <= now:
         return "slot is in the past"
     today = now.date()
