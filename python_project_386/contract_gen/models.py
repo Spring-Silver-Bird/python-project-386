@@ -61,4 +61,4 @@ class Slot(BaseModel):
 
 
 class Versions(Enum):
-    field_0_1_0 = '0.1.0'
+    field_1_0_0 = '1.0.0'

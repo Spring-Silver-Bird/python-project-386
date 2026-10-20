@@ -1,8 +1,8 @@
-// Call Calendar API — TypeSpec-проекция контракта (входной файл).
+// Call Calendar API — контракт на TypeSpec (входной файл).
 //
-// Источник истины: contract/openapi.yaml. Проекция обязана повторять его
-// точь-в-точь (имена полей, методы, статусы). Расхождения — только
-// синхронным обновлением обоих файлов (AGENTS.md §3).
+// Источник истины: TypeSpec (этот файл и contract/calendar/*.tsp).
+// contract/openapi.yaml генерируется из него командой `make contract`;
+// сгенерированные файлы руками не правятся (AGENTS.md §5).
 //
 // Раскладка:
 //   contract/calendar.tsp             — вход: info, версия, правила, подключение частей
@@ -40,7 +40,7 @@ namespace CallCalendar;
 
 @doc("Версии API.")
 enum Versions {
-  v1: "0.1.0",
+  v1: "1.0.0",
 }
 
 // ─── validators / rules ──────────────────────────────────────────

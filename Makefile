@@ -32,8 +32,9 @@ check:
 contract:
 	node -e "const m=process.version.match(/v(\d+)/); if (+m[1] < 22) { console.error('contract needs Node >= 22, current ' + process.version + ' (try: nvm use 22)'); process.exit(1); }"
 	cd contract && npm ci --no-audit --no-fund
+	rm -rf contract/tsp-output/@typespec/openapi3
 	cd contract && npx tsp compile calendar.tsp --emit @typespec/openapi3
-	# @versioned emitter writes openapi.<version>.yaml; single version expected
+	# @versioned emitter writes openapi.<version>.yaml; clean output keeps it single
 	cp contract/tsp-output/@typespec/openapi3/openapi.*.yaml contract/openapi.yaml
 
 sdk:

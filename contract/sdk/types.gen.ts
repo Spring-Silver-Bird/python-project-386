@@ -78,7 +78,7 @@ export type Slot = {
 /**
  * Версии API.
  */
-export type Versions = '0.1.0';
+export type Versions = '1.0.0';
 
 export type SiteIndexData = {
     body?: never;
