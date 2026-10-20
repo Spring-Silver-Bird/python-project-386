@@ -29,13 +29,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-call_password}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      PORT: 8000
+      PORT: ${PORT:-8000}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
     ports:
-      - "${WEB_PORT:-8000}:8000"
+      - "${WEB_PORT:-8000}:${PORT:-8000}"
     command: >
       sh -c "python manage.py migrate --noinput &&
-             gunicorn python_project_386.wsgi:application --bind 0.0.0.0:8000 --workers ${WEB_CONCURRENCY:-1}"
+             gunicorn python_project_386.wsgi:application --bind 0.0.0.0:$${PORT:-8000} --workers $${WEB_CONCURRENCY:-1}"
 
 volumes:
   pgdata:
