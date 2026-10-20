@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.5.0...python-project-386-v0.5.1) (2026-10-20)
+
+
+### Documentation
+
+* add render demo link ([9f0874a](https://github.com/Spring-Silver-Bird/python-project-386/commit/9f0874aad62cb90da6cde7d2991b0f2c9d436975))
+
 ## [0.5.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.4.0...python-project-386-v0.5.0) (2026-10-20)
 
 
