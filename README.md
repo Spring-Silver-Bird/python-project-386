@@ -56,6 +56,12 @@ make docker-down
 
 Если порт 8000 занят, укажите другой: `WEB_PORT=8001 make docker-up`.
 
+## Деплой на Render
+
+В репозитории есть `render.yaml` (Docker, план free). В Render: **New → Blueprint**, выберите репозиторий и примените конфигурацию. Сервис соберётся из `Dockerfile`.
+
+Данные календаря хранятся в памяти процесса, поэтому брони теряются при перезапуске и засыпании free-инстанса.
+
 Коммиты — Conventional Commits (`feat: ...`, `fix: ...`, ...). После мержа в `main` `release-please` сам создаёт release-PR. Подробнее — в `AGENTS.md`.
 
 ---
