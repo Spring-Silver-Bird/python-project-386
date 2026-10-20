@@ -46,6 +46,16 @@
     return found ? found.title : "Тип №" + eventTypeId;
   }
 
+  function bookingTitle(booking) {
+    if (booking.eventTypeTitle) {
+      return (
+        booking.eventTypeTitle +
+        (booking.eventTypeDescription ? " — " + booking.eventTypeDescription : "")
+      );
+    }
+    return eventTypeTitle(booking.event_type_id);
+  }
+
   function statusLabel(status) {
     if (status === "confirmed") {
       return "подтверждена";
@@ -93,7 +103,7 @@
         " <" +
         booking.guestEmail +
         "> — " +
-        eventTypeTitle(booking.event_type_id) +
+        bookingTitle(booking) +
         " — " +
         statusLabel(booking.status);
       ownerBookingsList.appendChild(item);

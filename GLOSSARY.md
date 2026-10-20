@@ -20,6 +20,10 @@ _Avoid_: Window, Interval
 Занятый гостем слот.
 _Avoid_: Reservation, Appointment, Record
 
+**Custom event type**:
+Одноразовое название и описание встречи, введённые гостем для конкретной Booking.
+_Avoid_: Own type, Custom meeting
+
 **Guest**:
 Человек, бронирующий звонок.
 _Avoid_: Client, Visitor, Attendee

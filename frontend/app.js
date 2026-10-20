@@ -10,12 +10,25 @@
 
   var ownerSel = $("owner");
   var etypeSel = $("etype");
+  var customTypeFields = $("customTypeFields");
+  var customTitleInput = $("customEventTypeTitle");
+  var customDescriptionInput = $("customEventTypeDescription");
   var dateInput = $("date");
   var slotsBox = $("slots");
   var msg = $("msg");
   var form = $("book");
   var myList = $("my");
   var slotInput = $("slotStartAt");
+
+  var CUSTOM_TYPE = "custom";
+
+  function isCustomType() {
+    return etypeSel.value === CUSTOM_TYPE;
+  }
+
+  function syncCustomFields() {
+    customTypeFields.hidden = !isCustomType();
+  }
 
   function setMessage(text) {
     ui.setMessage(msg, text);
@@ -56,22 +69,28 @@
         option.textContent = eventType.title + " (" + eventType.duration_minutes + " мин)";
         etypeSel.appendChild(option);
       });
+    var customOption = document.createElement("option");
+    customOption.value = CUSTOM_TYPE;
+    customOption.textContent = "Свой вариант…";
+    etypeSel.appendChild(customOption);
+    syncCustomFields();
   }
 
   async function loadSlots() {
     var ownerId = Number(ownerSel.value);
-    var eventTypeId = Number(etypeSel.value);
+    var eventTypeId = isCustomType() ? null : Number(etypeSel.value);
     slotsBox.innerHTML = "";
-    if (!ownerId || !eventTypeId || !dateInput.value) {
+    if (!ownerId || (!eventTypeId && !isCustomType()) || !dateInput.value) {
       return false;
     }
-    var result = await api.slotsList({
-      query: {
-        owner_id: ownerId,
-        event_type_id: eventTypeId,
-        date: dateInput.value,
-      },
-    });
+    var query = {
+      owner_id: ownerId,
+      date: dateInput.value,
+    };
+    if (eventTypeId) {
+      query.event_type_id = eventTypeId;
+    }
+    var result = await api.slotsList({ query: query });
     if (result.error || !result.data) {
       setMessage(errorText(result, "Не удалось загрузить слоты"));
       return false;
@@ -165,19 +184,35 @@
     fillEventTypes();
     loadSlots();
   };
-  etypeSel.onchange = loadSlots;
+  etypeSel.onchange = function () {
+    syncCustomFields();
+    loadSlots();
+  };
   dateInput.onchange = loadSlots;
   $("load").onclick = loadSlots;
   form.onsubmit = async function (event) {
     event.preventDefault();
-    var result = await api.bookingsCreate({
-      body: {
-        event_type_id: Number(etypeSel.value),
-        slotStartAt: slotInput.value,
-        guestName: $("guestName").value,
-        guestEmail: $("guestEmail").value,
-      },
-    });
+    var body = {
+      owner_id: Number(ownerSel.value),
+      slotStartAt: slotInput.value,
+      guestName: $("guestName").value,
+      guestEmail: $("guestEmail").value,
+    };
+    if (isCustomType()) {
+      var customTitle = customTitleInput.value.trim();
+      if (!customTitle) {
+        setMessage("Укажите название своего типа встречи");
+        return;
+      }
+      body.customEventType = { title: customTitle };
+      var customDescription = customDescriptionInput.value.trim();
+      if (customDescription) {
+        body.customEventType.description = customDescription;
+      }
+    } else {
+      body.event_type_id = Number(etypeSel.value);
+    }
+    var result = await api.bookingsCreate({ body: body });
     if (result.error) {
       setMessage("Ошибка: " + errorText(result, "не удалось создать запись"));
       return;
@@ -185,6 +220,8 @@
     var bookingId = result.data.id;
     slotInput.value = "";
     form.reset();
+    customTitleInput.value = "";
+    customDescriptionInput.value = "";
     var reloaded = await loadSlots();
     flashMessage(
       reloaded
