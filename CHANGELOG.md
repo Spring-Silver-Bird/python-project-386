@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.4.0...python-project-386-v0.5.0) (2026-10-20)
+
+
+### Features
+
+* allow guests to book a custom event type ([178ad39](https://github.com/Spring-Silver-Bird/python-project-386/commit/178ad3996b3bf363dfe5b933d8725aba8a42ff6e))
+* allow guests to book a custom event type ([150fbad](https://github.com/Spring-Silver-Bird/python-project-386/commit/150fbad4cfdbee2ff5c61541ce6a73bd2cdf1d02))
+* show booking messages as flash notifications ([908de4b](https://github.com/Spring-Silver-Bird/python-project-386/commit/908de4b1bec89f49bbd34c67165f67925362dd0e))
+* show booking messages as flash notifications ([a53c368](https://github.com/Spring-Silver-Bird/python-project-386/commit/a53c3687bea124561a22077e43468e3bf06ac060))
+
 ## [0.4.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.3.0...python-project-386-v0.4.0) (2026-10-20)
 
 
