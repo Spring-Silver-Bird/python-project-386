@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.3.0...python-project-386-v0.4.0) (2026-10-20)
+
+
+### Features
+
+* add owner page and align ui contract ([357f653](https://github.com/Spring-Silver-Bird/python-project-386/commit/357f65370ec8963cee24e20bb6bd17f8e170bee5))
+
+
+### Bug Fixes
+
+* align owner ui and e2e with contract after review ([cd8636c](https://github.com/Spring-Silver-Bird/python-project-386/commit/cd8636c9ad4cd4bf3ab35a400af5f60cd7d0e0df))
+
 ## [0.3.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.2.1...python-project-386-v0.3.0) (2026-10-20)
 
 
