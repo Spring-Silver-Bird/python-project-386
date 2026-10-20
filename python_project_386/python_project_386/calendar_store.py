@@ -43,12 +43,16 @@ def get_booking(booking_id: int) -> dict | None:
     return _bookings.get(booking_id)
 
 
-def cancel_booking(booking_id: int) -> dict | None:
+def cancel_booking(booking_id: int, now: datetime) -> tuple[dict | None, str | None, int]:
     booking = _bookings.get(booking_id)
     if booking is None:
-        return None
+        return None, "not found", 404
+    if booking["status"] == "cancelled":
+        return booking, None, 200
+    if parse_moscow_dt(booking["slotStartAt"]) <= now:
+        return None, "cannot cancel past booking", 400
     booking["status"] = "cancelled"
-    return booking
+    return booking, None, 200
 
 
 def get_event_type(event_type_id: int) -> dict | None:
@@ -68,9 +72,13 @@ def parse_moscow_dt(value: str) -> datetime | None:
 def validate_slot_start(dt: datetime, now: datetime) -> str | None:
     if dt.minute not in (0, 30) or dt.second != 0 or dt.microsecond != 0:
         return "slot must start at :00 or :30"
-    earliest = now - timedelta(minutes=1)
-    latest = now + timedelta(days=WINDOW_DAYS)
-    if dt < earliest or dt > latest:
+    if dt.hour < WORK_START_HOUR or dt.hour >= WORK_END_HOUR:
+        return "slot outside working hours"
+    if dt <= now:
+        return "slot is in the past"
+    today = now.date()
+    latest = today + timedelta(days=WINDOW_DAYS)
+    if dt.date() < today or dt.date() > latest:
         return "slot outside 14-day window"
     return None
 
@@ -129,13 +137,13 @@ def create_booking(
     return booking, None, 201
 
 
-def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime) -> list[dict]:
+def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime, now: datetime) -> list[dict]:
     slots = []
     for hour in range(WORK_START_HOUR, WORK_END_HOUR):
         for minute in (0, 30):
             start = day.replace(hour=hour, minute=minute, second=0, microsecond=0)
             end = start + timedelta(minutes=30)
-            taken = is_slot_taken(owner_id, start)
+            taken = is_slot_taken(owner_id, start) or start <= now
             slots.append(
                 {
                     "startAt": start.isoformat(),

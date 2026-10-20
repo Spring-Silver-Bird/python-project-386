@@ -1,0 +1,4 @@
+# TypeSpec project config: emit OpenAPI 3 from calendar.tsp.
+# Run `make contract` from the repo root to regenerate contract/openapi.yaml.
+emit:
+  - "@typespec/openapi3"

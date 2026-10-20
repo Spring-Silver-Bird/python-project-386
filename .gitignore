@@ -23,5 +23,9 @@ media/
 .DS_Store
 Thumbs.db
 
+# Contract toolchain (TypeSpec)
+contract/node_modules/
+contract/tsp-output/
+
 # Docker
 .docker/
