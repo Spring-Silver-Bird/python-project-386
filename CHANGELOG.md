@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.1](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.2.0...python-project-386-v0.2.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* keep booking success message after slots reload ([cb688eb](https://github.com/Spring-Silver-Bird/python-project-386/commit/cb688eb9666a27fc4d83d6f366c757f61924661e))
+* keep booking success message after slots reload ([58331ac](https://github.com/Spring-Silver-Bird/python-project-386/commit/58331acd010f33a6f491854f593db362fcbb74c5))
+
+
+### Documentation
+
+* drop throwaway contract-vs-impl research note ([2ad5e26](https://github.com/Spring-Silver-Bird/python-project-386/commit/2ad5e2655e0d33009a55f2566a6aee30f7266c4e))
+
 ## [0.2.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.1.0...python-project-386-v0.2.0) (2026-10-20)
 
 
