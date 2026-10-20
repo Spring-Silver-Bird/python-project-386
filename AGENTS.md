@@ -30,7 +30,7 @@
 ## 5. Структура репозитория
 
 - Django-проект — `python_project_386/` (там `manage.py`); внутренний пакет `python_project_386/python_project_386/` (`settings.py`, `urls.py`, `wsgi.py`). Приложений проекта пока нет — только `django.contrib.*`.
-- Фронтенд — `frontend/` (`index.html`, `owner.html`, `app.css`, `app.js`, `owner.js`); данные получает только через API/SDK, сервер их в шаблон не подставляет.
+- Фронтенд — `frontend/` (`index.html`, `owner.html`, `app.css`, `common.js`, `app.js`, `owner.js`); данные получает только через API/SDK, сервер их в шаблон не подставляет.
 - Контракт — TypeSpec: вход `contract/calendar.tsp`, части — в `contract/calendar/` (сущности, операции, ошибки); это источник истины. Генерация одной командой `make generate`: TypeSpec → `contract/openapi.yaml` → TS SDK (`contract/sdk/`) + бандл (`python_project_386/static/js/calendar-sdk.js`) + серверные типы (`python_project_386/contract_gen/`). Сгенерированное руками не правится. Если файла нет, уточнить у пользователя, не выдумывать эндпоинты.
 - Тесты — `python_project_386/tests/` (pytest); сквозные браузерные — `e2e/` (Playwright Test: `playwright.config.ts`, `tests/`).
 - Docker-файлы — `Dockerfile` и `docker-compose.yml` в корне репозитория.

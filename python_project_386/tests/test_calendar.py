@@ -123,11 +123,13 @@ def test_pages_are_served_as_html(client):
 
 def test_pages_only_allow_get(client):
     for url in ("/", "/owner/"):
-        assert client.post(url).status_code == 405
+        r = client.post(url)
+        assert r.status_code == 405
+        assert set(r.json()) == {"error"}
 
 
 def test_frontend_assets_are_discoverable():
-    for asset in ("app.js", "owner.js", "app.css"):
+    for asset in ("app.js", "owner.js", "common.js", "app.css"):
         assert finders.find(asset) is not None
 
 

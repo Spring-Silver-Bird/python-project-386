@@ -100,6 +100,15 @@ export type SiteIndexData = {
     url: '/';
 };
 
+export type SiteIndexErrors = {
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type SiteIndexError = SiteIndexErrors[keyof SiteIndexErrors];
+
 export type SiteIndexResponses = {
     /**
      * HTML-оболочка фронтенда; данные загружаются через API.
@@ -332,6 +341,15 @@ export type OwnerSiteOwnerData = {
     query?: never;
     url: '/owner/';
 };
+
+export type OwnerSiteOwnerErrors = {
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type OwnerSiteOwnerError = OwnerSiteOwnerErrors[keyof OwnerSiteOwnerErrors];
 
 export type OwnerSiteOwnerResponses = {
     /**

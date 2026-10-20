@@ -8,7 +8,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
 
 from .calendar_store import (
     MOSCOW_TZ,
@@ -49,13 +48,13 @@ def api_methods(*methods):
     return decorator
 
 
-@require_GET
+@api_methods("GET")
 def index(request):
     """Serve the guest frontend shell; all data comes from the JSON API."""
     return render(request, "index.html")
 
 
-@require_GET
+@api_methods("GET")
 def owner_page(request):
     """Serve the owner frontend shell; all data comes from the JSON API."""
     return render(request, "owner.html")

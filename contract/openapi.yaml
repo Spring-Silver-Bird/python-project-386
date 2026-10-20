@@ -17,6 +17,12 @@ paths:
             text/html:
               schema:
                 type: string
+        '405':
+          description: 405 — метод не поддерживается.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/bookings/:
     get:
       operationId: Bookings_list
@@ -270,6 +276,12 @@ paths:
             text/html:
               schema:
                 type: string
+        '405':
+          description: 405 — метод не поддерживается.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Booking:

@@ -2,12 +2,11 @@
   "use strict";
 
   var api = window.CalendarSDK;
+  var ui = window.CalendarUI;
   var owners = [];
   var eventTypes = [];
 
-  function $(id) {
-    return document.getElementById(id);
-  }
+  var $ = ui.byId;
 
   var ownerSel = $("owner");
   var etypeSel = $("etype");
@@ -19,18 +18,11 @@
   var slotInput = $("slotStartAt");
 
   function setMessage(text) {
-    msg.textContent = text || "";
+    ui.setMessage(msg, text);
   }
 
   function errorText(result, fallback) {
-    if (result && result.error) {
-      var message = result.error.error || fallback;
-      var translated = {
-        "slot already booked": "слот уже занят",
-      };
-      return translated[message] || message;
-    }
-    return fallback;
+    return ui.errorText(result, fallback, { "slot already booked": "слот уже занят" });
   }
 
   function todayMoscow() {
@@ -44,16 +36,6 @@
       timeZone: "Europe/Moscow",
       hour: "2-digit",
       minute: "2-digit",
-    });
-  }
-
-  function fillOwners(items) {
-    ownerSel.innerHTML = "";
-    items.forEach(function (owner) {
-      var option = document.createElement("option");
-      option.value = String(owner.id);
-      option.textContent = owner.name + " <" + owner.email + ">";
-      ownerSel.appendChild(option);
     });
   }
 
@@ -170,7 +152,7 @@
     }
     owners = ownersResult.data;
     eventTypes = typesResult.data;
-    fillOwners(owners);
+    ui.fillOwners(ownerSel, owners);
     fillEventTypes();
     await loadSlots();
   }

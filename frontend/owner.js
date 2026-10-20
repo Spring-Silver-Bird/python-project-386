@@ -2,11 +2,10 @@
   "use strict";
 
   var api = window.CalendarSDK;
+  var ui = window.CalendarUI;
   var eventTypes = [];
 
-  function $(id) {
-    return document.getElementById(id);
-  }
+  var $ = ui.byId;
 
   var ownerSel = $("owner");
   var ownerTypesList = $("ownerTypes");
@@ -15,14 +14,11 @@
   var msg = $("msg");
 
   function setMessage(text) {
-    msg.textContent = text || "";
+    ui.setMessage(msg, text);
   }
 
   function errorText(result, fallback) {
-    if (result && result.error) {
-      return result.error.error || fallback;
-    }
-    return fallback;
+    return ui.errorText(result, fallback);
   }
 
   function emptyItem(text) {
@@ -60,27 +56,13 @@
     return status;
   }
 
-  function fillOwners(items) {
-    ownerSel.innerHTML = "";
-    items.forEach(function (owner) {
-      var option = document.createElement("option");
-      option.value = String(owner.id);
-      option.textContent = owner.name + " <" + owner.email + ">";
-      ownerSel.appendChild(option);
-    });
-  }
-
   function renderOwnerEventTypes() {
-    var ownerId = Number(ownerSel.value);
-    var owned = eventTypes.filter(function (eventType) {
-      return eventType.owner_id === ownerId;
-    });
     ownerTypesList.innerHTML = "";
-    if (!owned.length) {
+    if (!eventTypes.length) {
       ownerTypesList.appendChild(emptyItem("У владельца пока нет типов встреч"));
       return;
     }
-    owned.forEach(function (eventType) {
+    eventTypes.forEach(function (eventType) {
       var item = document.createElement("li");
       item.textContent =
         eventType.title +
@@ -119,7 +101,13 @@
   }
 
   async function loadEventTypes() {
-    var result = await api.eventTypesList();
+    var ownerId = Number(ownerSel.value);
+    if (!ownerId) {
+      eventTypes = [];
+      renderOwnerEventTypes();
+      return false;
+    }
+    var result = await api.eventTypesList({ query: { owner_id: ownerId } });
     if (result.error || !result.data) {
       setMessage(errorText(result, "Не удалось загрузить типы встреч"));
       return false;
@@ -144,25 +132,18 @@
   }
 
   async function refreshOwner() {
-    renderOwnerEventTypes();
+    await loadEventTypes();
     await loadBookings();
   }
 
   async function init() {
-    var responses = await Promise.all([api.ownersList(), api.eventTypesList()]);
-    var ownersResult = responses[0];
-    var typesResult = responses[1];
+    var ownersResult = await api.ownersList();
     if (ownersResult.error || !ownersResult.data) {
       setMessage(errorText(ownersResult, "Не удалось загрузить владельцев"));
       return;
     }
-    if (typesResult.error || !typesResult.data) {
-      setMessage(errorText(typesResult, "Не удалось загрузить типы встреч"));
-      return;
-    }
-    eventTypes = typesResult.data;
-    fillOwners(ownersResult.data);
-    renderOwnerEventTypes();
+    ui.fillOwners(ownerSel, ownersResult.data);
+    await loadEventTypes();
     await loadBookings();
   }
 

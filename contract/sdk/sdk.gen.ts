@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesCreateData, EventTypesCreateErrors, EventTypesCreateResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnerSiteOwnerData, OwnerSiteOwnerResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
+import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesCreateData, EventTypesCreateErrors, EventTypesCreateResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnerSiteOwnerData, OwnerSiteOwnerErrors, OwnerSiteOwnerResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexErrors, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -23,7 +23,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  *
  * Статическая оболочка гостевой страницы; данные загружаются только через API.
  */
-export const siteIndex = <ThrowOnError extends boolean = false>(options?: Options<SiteIndexData, ThrowOnError>): RequestResult<SiteIndexResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SiteIndexResponses, unknown, ThrowOnError>({ url: '/', ...options });
+export const siteIndex = <ThrowOnError extends boolean = false>(options?: Options<SiteIndexData, ThrowOnError>): RequestResult<SiteIndexResponses, SiteIndexErrors, ThrowOnError> => (options?.client ?? client).get<SiteIndexResponses, SiteIndexErrors, ThrowOnError>({ url: '/', ...options });
 
 /**
  * Список записей
@@ -93,4 +93,4 @@ export const slotsList = <ThrowOnError extends boolean = false>(options: Options
  *
  * Статическая оболочка страницы владельца; типы встреч и брони загружаются через API.
  */
-export const ownerSiteOwner = <ThrowOnError extends boolean = false>(options?: Options<OwnerSiteOwnerData, ThrowOnError>): RequestResult<OwnerSiteOwnerResponses, unknown, ThrowOnError> => (options?.client ?? client).get<OwnerSiteOwnerResponses, unknown, ThrowOnError>({ url: '/owner/', ...options });
+export const ownerSiteOwner = <ThrowOnError extends boolean = false>(options?: Options<OwnerSiteOwnerData, ThrowOnError>): RequestResult<OwnerSiteOwnerResponses, OwnerSiteOwnerErrors, ThrowOnError> => (options?.client ?? client).get<OwnerSiteOwnerResponses, OwnerSiteOwnerErrors, ThrowOnError>({ url: '/owner/', ...options });

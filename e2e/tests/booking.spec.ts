@@ -82,8 +82,15 @@ test("второй гость получает отказ на занятый с
   await secondSlot.click();
   await secondPage.getByPlaceholder("Ваше имя").fill("Гость Б");
   await secondPage.getByPlaceholder("Email").fill("guest-b@example.com");
-  await secondPage.getByRole("button", { name: "Забронировать" }).click();
+  const [conflict] = await Promise.all([
+    secondPage.waitForResponse(
+      (response) => response.url().includes("/api/bookings/") && response.request().method() === "POST",
+    ),
+    secondPage.getByRole("button", { name: "Забронировать" }).click(),
+  ]);
+  expect(conflict.status()).toBe(409);
   await expect(secondPage.locator("#msg")).toContainText("слот уже занят");
+  await expect(secondPage.locator("#my")).not.toContainText("guest-b@example.com");
 
   await firstGuest.close();
   await secondGuest.close();

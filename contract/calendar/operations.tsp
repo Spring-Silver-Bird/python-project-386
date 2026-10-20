@@ -6,12 +6,18 @@ using Http;
 
 namespace CallCalendar;
 
+@doc("HTML-оболочка фронтенда; данные загружаются через API.")
+model HtmlPage {
+  @header contentType: "text/html";
+  @body body: string;
+}
+
 @route("/")
 interface Site {
   @get
   @summary("UI календаря")
   @doc("Статическая оболочка гостевой страницы; данные загружаются только через API.")
-  index(): HtmlPage;
+  index(): HtmlPage | MethodNotAllowed;
 }
 
 @route("/owner/")
@@ -19,7 +25,7 @@ interface OwnerSite {
   @get
   @summary("UI страницы владельца")
   @doc("Статическая оболочка страницы владельца; типы встреч и брони загружаются через API.")
-  owner(): HtmlPage;
+  owner(): HtmlPage | MethodNotAllowed;
 }
 
 @route("/api/owners/")
