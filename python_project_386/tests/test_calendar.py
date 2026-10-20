@@ -86,6 +86,16 @@ def test_frontend_app_wires_sdk_operations():
         assert operation in script
 
 
+def test_frontend_reports_booking_success_after_reloading_slots():
+    path = finders.find("app.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    submit = script.split("form.onsubmit", 1)[1]
+    assert "Запись №" in submit
+    assert submit.index("Готово!") > submit.index("await loadSlots()")
+
+
 def test_owners_and_event_types(client):
     assert client.get("/api/owners/").status_code == 200
     r = client.get("/api/event-types/?owner_id=1")
