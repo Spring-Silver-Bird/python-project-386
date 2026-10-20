@@ -17,6 +17,9 @@
   var form = $("book");
   var myList = $("my");
   var slotInput = $("slotStartAt");
+  var ownerTypesList = $("ownerTypes");
+  var ownerBookingsList = $("ownerBookings");
+  var createTypeForm = $("createType");
 
   function setMessage(text) {
     msg.textContent = text || "";
@@ -27,6 +30,13 @@
       return result.error.error || fallback;
     }
     return fallback;
+  }
+
+  function emptyItem(text) {
+    var item = document.createElement("li");
+    item.className = "muted";
+    item.textContent = text;
+    return item;
   }
 
   function todayMoscow() {
@@ -41,6 +51,24 @@
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function formatDateTime(iso) {
+    return new Date(iso).toLocaleString("ru-RU", {
+      timeZone: "Europe/Moscow",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function eventTypeTitle(eventTypeId) {
+    var found = eventTypes.filter(function (eventType) {
+      return eventType.id === eventTypeId;
+    })[0];
+    return found ? found.title : "Тип №" + eventTypeId;
   }
 
   function fillOwners(items) {
@@ -66,6 +94,52 @@
         option.textContent = eventType.title + " (" + eventType.duration_minutes + " мин)";
         etypeSel.appendChild(option);
       });
+  }
+
+  function renderOwnerEventTypes() {
+    var ownerId = Number(ownerSel.value);
+    var owned = eventTypes.filter(function (eventType) {
+      return eventType.owner_id === ownerId;
+    });
+    ownerTypesList.innerHTML = "";
+    if (!owned.length) {
+      ownerTypesList.appendChild(emptyItem("У владельца пока нет типов встреч"));
+      return;
+    }
+    owned.forEach(function (eventType) {
+      var item = document.createElement("li");
+      item.textContent =
+        eventType.title +
+        " (" +
+        eventType.duration_minutes +
+        " мин)" +
+        (eventType.description ? " — " + eventType.description : "");
+      ownerTypesList.appendChild(item);
+    });
+  }
+
+  function renderOwnerBookings(items) {
+    var now = Date.now();
+    var upcoming = items.filter(function (booking) {
+      return booking.status === "confirmed" && new Date(booking.slotStartAt).getTime() >= now;
+    });
+    ownerBookingsList.innerHTML = "";
+    if (!upcoming.length) {
+      ownerBookingsList.appendChild(emptyItem("Предстоящих встреч нет"));
+      return;
+    }
+    upcoming.forEach(function (booking) {
+      var item = document.createElement("li");
+      item.textContent =
+        formatDateTime(booking.slotStartAt) +
+        " — " +
+        booking.guestName +
+        " <" +
+        booking.guestEmail +
+        "> — " +
+        eventTypeTitle(booking.event_type_id);
+      ownerBookingsList.appendChild(item);
+    });
   }
 
   async function loadSlots() {
@@ -111,13 +185,16 @@
     var ownerId = Number(ownerSel.value);
     if (!ownerId) {
       myList.innerHTML = "";
+      ownerBookingsList.innerHTML = "";
       return;
     }
     var result = await api.bookingsList({ query: { owner_id: ownerId } });
     myList.innerHTML = "";
+    ownerBookingsList.innerHTML = "";
     if (result.error || !result.data) {
       return;
     }
+    renderOwnerBookings(result.data);
     result.data
       .filter(function (booking) {
         return booking.status === "confirmed";
@@ -140,12 +217,28 @@
             setMessage(errorText(cancelled, "Не удалось отменить запись"));
             return;
           }
-          setMessage("");
-          await loadSlots();
+          var reloaded = await loadSlots();
+          setMessage(
+            reloaded
+              ? "Запись №" + booking.id + " отменена"
+              : "Запись №" + booking.id + " отменена, но слоты не удалось обновить"
+          );
         };
         item.appendChild(cancel);
         myList.appendChild(item);
       });
+  }
+
+  async function loadEventTypes() {
+    var result = await api.eventTypesList();
+    if (result.error || !result.data) {
+      setMessage(errorText(result, "Не удалось загрузить типы встреч"));
+      return false;
+    }
+    eventTypes = result.data;
+    fillEventTypes();
+    renderOwnerEventTypes();
+    return true;
   }
 
   async function init() {
@@ -165,11 +258,13 @@
     eventTypes = typesResult.data;
     fillOwners(owners);
     fillEventTypes();
+    renderOwnerEventTypes();
     await loadSlots();
   }
 
   ownerSel.onchange = function () {
     fillEventTypes();
+    renderOwnerEventTypes();
     loadSlots();
   };
   etypeSel.onchange = loadSlots;
@@ -198,6 +293,30 @@
         ? "Готово! Запись №" + bookingId + " создана"
         : "Запись №" + bookingId + " создана, но слоты не удалось обновить"
     );
+  };
+
+  createTypeForm.onsubmit = async function (event) {
+    event.preventDefault();
+    var description = $("eventTypeDescription").value;
+    var body = {
+      owner_id: Number(ownerSel.value),
+      title: $("eventTypeTitle").value,
+      duration_minutes: 30,
+    };
+    if (description.trim()) {
+      body.description = description;
+    }
+    var result = await api.eventTypesCreate({ body: body });
+    if (result.error) {
+      setMessage("Ошибка: " + errorText(result, "не удалось создать тип встречи"));
+      return;
+    }
+    var eventTypeId = result.data.id;
+    createTypeForm.reset();
+    await loadEventTypes();
+    etypeSel.value = String(eventTypeId);
+    await loadSlots();
+    setMessage("Тип встречи №" + eventTypeId + " создан");
   };
 
   init();

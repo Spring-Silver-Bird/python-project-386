@@ -22,14 +22,19 @@ EVENT_TYPES = [
     },
 ]
 
+_SEED_EVENT_TYPES = [dict(event_type) for event_type in EVENT_TYPES]
+
 _bookings: dict[int, dict] = {}
 _next_id = 1
+_next_event_type_id = max(event_type["id"] for event_type in _SEED_EVENT_TYPES) + 1
 
 
 def reset_store() -> None:
-    global _bookings, _next_id
+    global _bookings, _next_id, _next_event_type_id
     _bookings = {}
     _next_id = 1
+    EVENT_TYPES[:] = [dict(event_type) for event_type in _SEED_EVENT_TYPES]
+    _next_event_type_id = max(event_type["id"] for event_type in EVENT_TYPES) + 1
 
 
 def list_bookings(owner_id: int | None = None) -> list[dict]:
@@ -57,6 +62,45 @@ def cancel_booking(booking_id: int, now: datetime) -> tuple[dict | None, str | N
 
 def get_event_type(event_type_id: int) -> dict | None:
     return next((e for e in EVENT_TYPES if e["id"] == event_type_id), None)
+
+
+def get_owner(owner_id: int) -> dict | None:
+    return next((o for o in OWNERS if o["id"] == owner_id), None)
+
+
+def list_event_types(owner_id: int | None = None) -> list[dict]:
+    if owner_id is None:
+        return list(EVENT_TYPES)
+    return [e for e in EVENT_TYPES if e["owner_id"] == owner_id]
+
+
+def create_event_type(
+    owner_id: int,
+    title: str,
+    description: str | None,
+    duration_minutes: int,
+) -> tuple[dict | None, str | None, int]:
+    """Create an owner's EventType for the owner scenario (ADR-0007)."""
+    global _next_event_type_id
+
+    if get_owner(owner_id) is None:
+        return None, "unknown owner_id", 400
+    if duration_minutes != 30:
+        return None, "only 30-minute event types supported", 400
+    title = title.strip()
+    if not title:
+        return None, "title required", 400
+    event_type = {
+        "id": _next_event_type_id,
+        "owner_id": owner_id,
+        "title": title,
+        "duration_minutes": 30,
+    }
+    if description is not None:
+        event_type["description"] = description
+    EVENT_TYPES.append(event_type)
+    _next_event_type_id += 1
+    return event_type, None, 201
 
 
 def parse_moscow_dt(value: str) -> datetime | None:

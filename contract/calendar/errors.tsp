@@ -12,7 +12,7 @@ model Error {
 }
 
 @error
-@doc("400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).")
+@doc("400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).")
 model BadRequest {
   @statusCode statusCode: 400;
   @body body: Error;
@@ -45,4 +45,10 @@ model MethodNotAllowed {
 model CreatedBooking {
   @statusCode statusCode: 201;
   @body body: Booking;
+}
+
+@doc("201 — тип встречи создан.")
+model CreatedEventType {
+  @statusCode statusCode: 201;
+  @body body: EventType;
 }

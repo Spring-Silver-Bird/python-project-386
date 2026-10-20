@@ -55,6 +55,19 @@ export type EventType = {
 };
 
 /**
+ * Тело создания типа встречи (сценарий владельца).
+ */
+export type EventTypeCreate = {
+    owner_id: number;
+    title: string;
+    description?: string;
+    /**
+     * Только 30, другие длительности не поддерживаются.
+     */
+    duration_minutes: 30;
+};
+
+/**
  * Владелец календаря (GLOSSARY: Owner).
  */
 export type Owner = {
@@ -107,7 +120,7 @@ export type BookingsListData = {
 
 export type BookingsListErrors = {
     /**
-     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
      */
     400: Error;
     /**
@@ -136,7 +149,7 @@ export type BookingsCreateData = {
 
 export type BookingsCreateErrors = {
     /**
-     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
      */
     400: Error;
     /**
@@ -171,7 +184,7 @@ export type BookingsCancelData = {
 
 export type BookingsCancelErrors = {
     /**
-     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
      */
     400: Error;
     /**
@@ -206,7 +219,7 @@ export type EventTypesListData = {
 
 export type EventTypesListErrors = {
     /**
-     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
      */
     400: Error;
     /**
@@ -225,6 +238,35 @@ export type EventTypesListResponses = {
 };
 
 export type EventTypesListResponse = EventTypesListResponses[keyof EventTypesListResponses];
+
+export type EventTypesCreateData = {
+    body: EventTypeCreate;
+    path?: never;
+    query?: never;
+    url: '/api/event-types/';
+};
+
+export type EventTypesCreateErrors = {
+    /**
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
+     */
+    400: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type EventTypesCreateError = EventTypesCreateErrors[keyof EventTypesCreateErrors];
+
+export type EventTypesCreateResponses = {
+    /**
+     * 201 — тип встречи создан.
+     */
+    201: EventType;
+};
+
+export type EventTypesCreateResponse = EventTypesCreateResponses[keyof EventTypesCreateResponses];
 
 export type OwnersListData = {
     body?: never;
@@ -264,7 +306,7 @@ export type SlotsListData = {
 
 export type SlotsListErrors = {
     /**
-     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).
      */
     400: Error;
     /**

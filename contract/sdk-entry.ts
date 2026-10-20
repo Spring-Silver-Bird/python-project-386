@@ -6,6 +6,7 @@ import {
   bookingsCancel,
   bookingsCreate,
   bookingsList,
+  eventTypesCreate,
   eventTypesList,
   ownersList,
   slotsList,
@@ -16,6 +17,7 @@ client.setConfig({ baseUrl: "" });
 (window as unknown as { CalendarSDK: unknown }).CalendarSDK = {
   ownersList,
   eventTypesList,
+  eventTypesCreate,
   slotsList,
   bookingsList,
   bookingsCreate,

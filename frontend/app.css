@@ -52,3 +52,7 @@ button {
   min-height: 1.5em;
   font-weight: 600;
 }
+
+.muted {
+  color: #777;
+}

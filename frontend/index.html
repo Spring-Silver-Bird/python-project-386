@@ -30,6 +30,18 @@
   <h2>Мои записи</h2>
   <ul id="my"></ul>
 
+  <h2>Владелец</h2>
+  <h3>Типы встреч</h3>
+  <ul id="ownerTypes"></ul>
+  <form id="createType">
+    <input id="eventTypeTitle" placeholder="Название типа встречи" required />
+    <input id="eventTypeDescription" placeholder="Описание (необязательно)" />
+    <button type="submit">Создать тип встречи</button>
+  </form>
+
+  <h3>Предстоящие встречи</h3>
+  <ul id="ownerBookings"></ul>
+
   <script src="{% static 'js/calendar-sdk.js' %}"></script>
   <script src="{% static 'app.js' %}"></script>
 </body>

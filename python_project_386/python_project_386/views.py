@@ -10,17 +10,25 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .calendar_store import (
-    EVENT_TYPES,
     MOSCOW_TZ,
     OWNERS,
     WINDOW_DAYS,
     build_slots_for_date,
     cancel_booking,
     create_booking,
+    create_event_type,
     get_event_type,
     list_bookings,
+    list_event_types,
     parse_moscow_dt,
 )
+
+
+def _as_int(value):
+    """Accept only JSON integers; bool and float are not int32 per contract."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value
 
 
 def api_methods(*methods):
@@ -50,17 +58,51 @@ def api_owners(request):
     return JsonResponse(OWNERS, safe=False)
 
 
-@api_methods("GET")
+@csrf_exempt
+@api_methods("GET", "POST")
 def api_event_types(request):
+    """GET -> list, POST -> create (owner scenario, ADR-0007)."""
+    if request.method == "POST":
+        return api_event_types_create(request)
     owner_id = request.GET.get("owner_id")
-    items = EVENT_TYPES
+    items = list_event_types()
     if owner_id is not None:
         try:
             oid = int(owner_id)
         except ValueError:
             return JsonResponse({"error": "invalid owner_id"}, status=400)
-        items = [e for e in items if e["owner_id"] == oid]
+        items = list_event_types(oid)
     return JsonResponse(items, safe=False)
+
+
+def api_event_types_create(request):
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "invalid JSON"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "invalid JSON body"}, status=400)
+    owner_id = _as_int(payload.get("owner_id"))
+    duration_minutes = _as_int(payload.get("duration_minutes"))
+    title = payload.get("title")
+    description = payload.get("description")
+    if owner_id is None:
+        return JsonResponse({"error": "owner_id required"}, status=400)
+    if not isinstance(title, str):
+        return JsonResponse({"error": "title required"}, status=400)
+    if duration_minutes is None:
+        return JsonResponse({"error": "duration_minutes must be 30"}, status=400)
+    if description is not None and not isinstance(description, str):
+        return JsonResponse({"error": "description must be a string"}, status=400)
+    event_type, err, status = create_event_type(
+        owner_id=owner_id,
+        title=title,
+        description=description,
+        duration_minutes=duration_minutes,
+    )
+    if err:
+        return JsonResponse({"error": err}, status=status)
+    return JsonResponse(event_type, status=201)
 
 
 @api_methods("GET")
@@ -113,9 +155,8 @@ def api_bookings_create(request):
         return JsonResponse({"error": "invalid JSON"}, status=400)
     if not isinstance(payload, dict):
         return JsonResponse({"error": "invalid JSON body"}, status=400)
-    try:
-        event_type_id = int(payload.get("event_type_id", ""))
-    except (TypeError, ValueError):
+    event_type_id = _as_int(payload.get("event_type_id"))
+    if event_type_id is None:
         return JsonResponse({"error": "event_type_id required"}, status=400)
     slot_raw = payload.get("slotStartAt", "")
     slot_start = parse_moscow_dt(slot_raw) if isinstance(slot_raw, str) else None

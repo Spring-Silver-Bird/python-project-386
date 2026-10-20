@@ -48,6 +48,15 @@ class EventType(BaseModel):
     )
 
 
+class EventTypeCreate(BaseModel):
+    owner_id: int
+    title: str
+    description: str | None = None
+    duration_minutes: DurationMinutes = Field(
+        ..., description='Только 30, другие длительности не поддерживаются.'
+    )
+
+
 class Owner(BaseModel):
     id: int
     name: str

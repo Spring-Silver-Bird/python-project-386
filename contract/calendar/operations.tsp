@@ -10,7 +10,7 @@ namespace CallCalendar;
 interface Site {
   @get
   @summary("UI календаря")
-  @doc("HTML-страница на Django-templates; запись — форма на ней же.")
+  @doc("Статическая оболочка фронтенда; данные загружаются только через API.")
   index(): string;
 }
 
@@ -18,15 +18,21 @@ interface Site {
 interface Owners {
   @get
   @summary("Список владельцев")
+  @doc("Сценарий владельца: источник owner_id для списков типов встреч и броней.")
   list(): Owner[] | MethodNotAllowed;
 }
 
 @route("/api/event-types/")
 interface EventTypes {
   @get
-  @summary("Список типов встреч")
-  @doc("owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.")
+  @summary("Список типов встреч владельца")
+  @doc("Сценарий владельца: показать типы встреч выбранного владельца. owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.")
   list(@query owner_id?: int32): EventType[] | BadRequest | MethodNotAllowed;
+
+  @post
+  @summary("Создание типа встречи")
+  @doc("Сценарий владельца: добавить тип встречи. owner_id должен существовать, title — непустая строка, description — строка или отсутствует, duration_minutes — только 30. Редактирование и удаление типов встреч в v1 не входят.")
+  create(@body body: EventTypeCreate): CreatedEventType | BadRequest | MethodNotAllowed;
 }
 
 @route("/api/slots/")
@@ -45,7 +51,7 @@ interface Slots {
 interface Bookings {
   @get
   @summary("Список записей")
-  @doc("owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot.")
+  @doc("owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot. Сценарий владельца: предстоящие встречи — confirmed с slotStartAt ≥ now; фильтр выполняется на клиенте.")
   list(@query owner_id?: int32): Booking[] | BadRequest | MethodNotAllowed;
 
   @post

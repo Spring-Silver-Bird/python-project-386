@@ -8,7 +8,7 @@ import json
 from datetime import timedelta
 
 import pytest
-from contract_gen.models import Booking, Error, EventType, Owner, Slot
+from contract_gen.models import Booking, Error, EventType, EventTypeCreate, Owner, Slot
 from django.utils import timezone
 from python_project_386.calendar_store import MOSCOW_TZ, reset_store
 
@@ -45,6 +45,24 @@ def test_event_types_match_generated_type(client):
     r = client.get("/api/event-types/?owner_id=1")
     assert r.status_code == 200
     [EventType.model_validate(e) for e in r.json()]
+
+
+def test_create_event_type_matches_generated_types(client):
+    payload = EventTypeCreate(
+        owner_id=1,
+        title="Знакомство",
+        description="Первая встреча",
+        duration_minutes=30,
+    )
+    r = client.post(
+        "/api/event-types/",
+        data=payload.model_dump_json(exclude_none=True),
+        content_type="application/json",
+    )
+    assert r.status_code == 201
+    created = EventType.model_validate(r.json())
+    assert created.title == "Знакомство"
+    assert created.duration_minutes.value == 30
 
 
 def test_slots_match_generated_type(client):

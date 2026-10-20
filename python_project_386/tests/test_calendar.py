@@ -47,6 +47,21 @@ def book(client, **over):
     )
 
 
+def create_type(client, **over):
+    payload = {
+        "owner_id": 1,
+        "title": "Знакомство",
+        "description": "Первая встреча",
+        "duration_minutes": 30,
+    }
+    payload.update(over)
+    return client.post(
+        "/api/event-types/",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+
+
 def test_index_renders_frontend_shell_without_seed_data(client):
     r = client.get("/")
     assert r.status_code == 200
@@ -55,7 +70,19 @@ def test_index_renders_frontend_shell_without_seed_data(client):
     assert "calendar-sdk" in content  # фронтенд пользуется сгенерированным SDK
     assert "app.js" in content
     # UI даёт выбрать владельца/тип/дату/слот, забронировать и увидеть свои записи.
-    for element_id in ("owner", "etype", "date", "slots", "book", "guestName", "guestEmail", "my"):
+    for element_id in (
+        "owner",
+        "etype",
+        "date",
+        "slots",
+        "book",
+        "guestName",
+        "guestEmail",
+        "my",
+        "ownerTypes",
+        "createType",
+        "ownerBookings",
+    ):
         assert f'id="{element_id}"' in content
     # Данные приходят только из API, сервер их в HTML не встраивает.
     assert "Алекс" not in content
@@ -73,7 +100,15 @@ def test_sdk_bundle_exposes_calendar_operations():
     assert path is not None
     with open(path, encoding="utf-8") as bundle_file:
         bundle = bundle_file.read()
-    for operation in ("ownersList", "eventTypesList", "slotsList", "bookingsCreate", "bookingsCancel"):
+    operations = (
+        "ownersList",
+        "eventTypesList",
+        "eventTypesCreate",
+        "slotsList",
+        "bookingsCreate",
+        "bookingsCancel",
+    )
+    for operation in operations:
         assert operation in bundle
 
 
@@ -82,7 +117,15 @@ def test_frontend_app_wires_sdk_operations():
     assert path is not None
     with open(path, encoding="utf-8") as app_file:
         script = app_file.read()
-    for operation in ("ownersList", "eventTypesList", "slotsList", "bookingsCreate", "bookingsCancel"):
+    operations = (
+        "ownersList",
+        "eventTypesList",
+        "eventTypesCreate",
+        "slotsList",
+        "bookingsCreate",
+        "bookingsCancel",
+    )
+    for operation in operations:
         assert operation in script
 
 
@@ -101,6 +144,55 @@ def test_owners_and_event_types(client):
     r = client.get("/api/event-types/?owner_id=1")
     assert r.status_code == 200
     assert r.json()[0]["duration_minutes"] == 30
+
+
+def test_create_event_type_for_owner(client):
+    r = create_type(client, title="  Консультация  ")
+    assert r.status_code == 201
+    created = r.json()
+    assert created == {
+        "id": 2,
+        "owner_id": 1,
+        "title": "Консультация",
+        "description": "Первая встреча",
+        "duration_minutes": 30,
+    }
+    listed = client.get("/api/event-types/?owner_id=1").json()
+    assert listed[-1] == created
+    assert client.get("/api/event-types/?owner_id=2").json() == []
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"owner_id": 2, "title": "Чужой", "duration_minutes": 30},
+        {"owner_id": 1, "title": "   ", "duration_minutes": 30},
+        {"owner_id": 1, "duration_minutes": 30},
+        {"owner_id": 1, "title": "Сорок пять", "duration_minutes": 45},
+        {"owner_id": 1, "title": "Дробная длительность", "duration_minutes": 30.0},
+        {"owner_id": 1, "title": 123, "duration_minutes": 30},
+        {"owner_id": 1, "title": "Плохое описание", "description": 123, "duration_minutes": 30},
+        {"owner_id": True, "title": "Bool вместо id", "duration_minutes": 30},
+    ],
+)
+def test_create_event_type_rejects_invalid_payload(client, payload):
+    r = client.post("/api/event-types/", data=json.dumps(payload), content_type="application/json")
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+    assert len(client.get("/api/event-types/?owner_id=1").json()) == 1
+
+
+def test_create_event_type_rejects_non_object_json(client):
+    r = client.post("/api/event-types/", data=json.dumps([1, 2]), content_type="application/json")
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+
+
+@pytest.mark.parametrize("event_type_id", [1.5, True, "1"])
+def test_booking_requires_integer_event_type(client, event_type_id):
+    r = book(client, event_type_id=event_type_id)
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
 
 
 def test_slots_require_14d_window(client):
@@ -279,6 +371,48 @@ def test_guest_happy_path_end_to_end(client):
     after_cancel = {s["startAt"]: s for s in client.get(slots_url).json()}
     assert after_cancel[chosen]["isAvailable"] is True
     assert book(client, event_type_id=event_type_id, slotStartAt=chosen).status_code == 201
+
+
+def test_slot_is_blocked_across_event_types(client):
+    owner_id = client.get("/api/owners/").json()[0]["id"]
+    second_type = create_type(client).json()
+    chosen = slot_iso()
+    assert book(client, event_type_id=1, slotStartAt=chosen).status_code == 201
+
+    day = chosen[:10]
+    slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id={second_type['id']}&date={day}"
+    slots = {s["startAt"]: s for s in client.get(slots_url).json()}
+    assert slots[chosen]["isAvailable"] is False
+    assert book(client, event_type_id=second_type["id"], slotStartAt=chosen).status_code == 409
+
+
+def test_owner_scenario_end_to_end(client):
+    owner_id = client.get("/api/owners/").json()[0]["id"]
+    created_type = create_type(client, title="Знакомство").json()
+
+    types = client.get(f"/api/event-types/?owner_id={owner_id}").json()
+    assert any(event_type["id"] == created_type["id"] for event_type in types)
+
+    day = (moscow_now() + timedelta(days=1)).date().isoformat()
+    slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id={created_type['id']}&date={day}"
+    chosen = next(s for s in client.get(slots_url).json() if s["isAvailable"])["startAt"]
+
+    created_booking = book(
+        client,
+        event_type_id=created_type["id"],
+        slotStartAt=chosen,
+        guestName="Мария",
+        guestEmail="maria@example.com",
+    )
+    assert created_booking.status_code == 201
+
+    bookings = client.get(f"/api/bookings/?owner_id={owner_id}").json()
+    booking = next(b for b in bookings if b["id"] == created_booking.json()["id"])
+    assert booking["guestName"] == "Мария"
+    assert booking["guestEmail"] == "maria@example.com"
+    assert booking["slotStartAt"] == chosen
+    assert booking["event_type_id"] == created_type["id"]
+    assert booking["status"] == "confirmed"
 
 
 @pytest.mark.parametrize("guest_name", [None, 123])

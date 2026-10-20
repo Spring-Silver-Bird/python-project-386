@@ -13,7 +13,8 @@
 //   contract/calendar/errors.tsp      — ошибки и общие типы ответов
 //   contract/calendar/operations.tsp  — операции/эндпоинты
 //
-// Скоуп v1 (спека #8): CRUD для Owner/EventType НЕ вводится, сиды фиксированы.
+// Скоуп v1 (спека #8, ADR-0007): CRUD для Owner не вводится.
+// EventType: список + создание для сценария владельца; edit/delete не входят.
 
 import "./calendar/owner.tsp";
 import "./calendar/event-type.tsp";
@@ -26,6 +27,16 @@ import "@typespec/versioning";
 
 using Http;
 using Versioning;
+
+// ─── scenarios ───────────────────────────────────────────────────
+// Гость: GET /api/owners/, GET /api/event-types/?owner_id, GET /api/slots/,
+// POST /api/bookings/, POST /api/bookings/{id}/cancel/.
+//
+// Владелец: GET /api/owners/, GET /api/event-types/?owner_id (свои типы),
+// POST /api/event-types/ (создать тип), GET /api/bookings/?owner_id.
+// Для предстоящих встреч клиент берёт confirmed с slotStartAt ≥ now.
+// Данные брони: guestName/guestEmail, slotStartAt, event_type_id → EventType.title.
+// Отдельного HTML-эндпоинта владельца нет: UI использует те же API.
 
 // ─── info / metadata ─────────────────────────────────────────────
 

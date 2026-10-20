@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
+import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesCreateData, EventTypesCreateErrors, EventTypesCreateResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,14 +21,14 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * UI календаря
  *
- * HTML-страница на Django-templates; запись — форма на ней же.
+ * Статическая оболочка фронтенда; данные загружаются только через API.
  */
 export const siteIndex = <ThrowOnError extends boolean = false>(options?: Options<SiteIndexData, ThrowOnError>): RequestResult<SiteIndexResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SiteIndexResponses, unknown, ThrowOnError>({ url: '/', ...options });
 
 /**
  * Список записей
  *
- * owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot.
+ * owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot. Сценарий владельца: предстоящие встречи — confirmed с slotStartAt ≥ now; фильтр выполняется на клиенте.
  */
 export const bookingsList = <ThrowOnError extends boolean = false>(options?: Options<BookingsListData, ThrowOnError>): RequestResult<BookingsListResponses, BookingsListErrors, ThrowOnError> => (options?.client ?? client).get<BookingsListResponses, BookingsListErrors, ThrowOnError>({ url: '/api/bookings/', ...options });
 
@@ -54,14 +54,30 @@ export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Op
 export const bookingsCancel = <ThrowOnError extends boolean = false>(options: Options<BookingsCancelData, ThrowOnError>): RequestResult<BookingsCancelResponses, BookingsCancelErrors, ThrowOnError> => (options.client ?? client).post<BookingsCancelResponses, BookingsCancelErrors, ThrowOnError>({ url: '/api/bookings/{id}/cancel/', ...options });
 
 /**
- * Список типов встреч
+ * Список типов встреч владельца
  *
- * owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.
+ * Сценарий владельца: показать типы встреч выбранного владельца. owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.
  */
 export const eventTypesList = <ThrowOnError extends boolean = false>(options?: Options<EventTypesListData, ThrowOnError>): RequestResult<EventTypesListResponses, EventTypesListErrors, ThrowOnError> => (options?.client ?? client).get<EventTypesListResponses, EventTypesListErrors, ThrowOnError>({ url: '/api/event-types/', ...options });
 
 /**
+ * Создание типа встречи
+ *
+ * Сценарий владельца: добавить тип встречи. owner_id должен существовать, title — непустая строка, description — строка или отсутствует, duration_minutes — только 30. Редактирование и удаление типов встреч в v1 не входят.
+ */
+export const eventTypesCreate = <ThrowOnError extends boolean = false>(options: Options<EventTypesCreateData, ThrowOnError>): RequestResult<EventTypesCreateResponses, EventTypesCreateErrors, ThrowOnError> => (options.client ?? client).post<EventTypesCreateResponses, EventTypesCreateErrors, ThrowOnError>({
+    url: '/api/event-types/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Список владельцев
+ *
+ * Сценарий владельца: источник owner_id для списков типов встреч и броней.
  */
 export const ownersList = <ThrowOnError extends boolean = false>(options?: Options<OwnersListData, ThrowOnError>): RequestResult<OwnersListResponses, OwnersListErrors, ThrowOnError> => (options?.client ?? client).get<OwnersListResponses, OwnersListErrors, ThrowOnError>({ url: '/api/owners/', ...options });
 
