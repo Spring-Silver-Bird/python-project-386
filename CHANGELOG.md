@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.2.1...python-project-386-v0.3.0) (2026-10-20)
+
+
+### Features
+
+* add owner event type creation and scenario ([af62984](https://github.com/Spring-Silver-Bird/python-project-386/commit/af62984281f88b0c22df766143bb1dfa6a3827ba))
+
+
+### Bug Fixes
+
+* complete owner scenario ui fields ([1042287](https://github.com/Spring-Silver-Bird/python-project-386/commit/10422870c325ef631b15a5844e72ba53b92a7b4c))
+
 ## [0.2.1](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.2.0...python-project-386-v0.2.1) (2026-10-20)
 
 
