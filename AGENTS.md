@@ -32,7 +32,7 @@
 - Django-проект — `python_project_386/` (там `manage.py`); внутренний пакет `python_project_386/python_project_386/` (`settings.py`, `urls.py`, `wsgi.py`). Приложений проекта пока нет — только `django.contrib.*`.
 - Фронтенд — `frontend/` (`index.html`, `owner.html`, `app.css`, `app.js`, `owner.js`); данные получает только через API/SDK, сервер их в шаблон не подставляет.
 - Контракт — TypeSpec: вход `contract/calendar.tsp`, части — в `contract/calendar/` (сущности, операции, ошибки); это источник истины. Генерация одной командой `make generate`: TypeSpec → `contract/openapi.yaml` → TS SDK (`contract/sdk/`) + бандл (`python_project_386/static/js/calendar-sdk.js`) + серверные типы (`python_project_386/contract_gen/`). Сгенерированное руками не правится. Если файла нет, уточнить у пользователя, не выдумывать эндпоинты.
-- Тесты — `python_project_386/tests/` (pytest).
+- Тесты — `python_project_386/tests/` (pytest); сквозные браузерные — `e2e/` (Playwright Test: `playwright.config.ts`, `tests/`).
 - Docker-файлы — `Dockerfile` и `docker-compose.yml` в корне репозитория.
 
 ## 6. Команды
@@ -45,7 +45,8 @@
 - `make contract` — сгенерировать `contract/openapi.yaml` из TypeSpec (требуется Node >= 22)
 - `make generate` — вся цепочка: `contract` → TS SDK + бандл → серверные типы (pydantic)
 - `make docker-build` — собрать Docker-образ; `make docker-up` — поднять бэкенд (+Postgres) в Docker
-- Проверки после изменений: `make test`, `make lint` (`ruff check .` + `ruff format --check .`), `make check` (`manage.py check`)
+- `make e2e-install` — поставить зависимости e2e и браузер Chromium (`npm ci` + `playwright install`, требуется Node >= 22); `make e2e` — прогнать сквозные сценарии (сервер поднимает сам Playwright через `webServer`)
+- Проверки после изменений: `make test`, `make lint` (`ruff check .` + `ruff format --check .`), `make check` (`manage.py check`); при изменении фронтенда — ещё `make e2e`
 - Коммиты — только Conventional Commits (`feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`, `refactor: ...`, `test: ...`, `ci: ...`): этого требует `release-please` — после мержа в `main` он сам создаёт release-PR
 
 ## 7. Что делать агенту

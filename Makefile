@@ -1,4 +1,4 @@
-.PHONY: install start dev migrate test lint lint-fix check contract sdk server-types generate docker-build docker-up docker-down collectstatic
+.PHONY: install start dev migrate test lint lint-fix check contract sdk server-types generate docker-build docker-up docker-down collectstatic e2e-install e2e
 
 install:
 	uv sync
@@ -28,6 +28,13 @@ lint-fix:
 
 check:
 	uv run python python_project_386/manage.py check
+
+e2e-install:
+	cd e2e && npm ci
+	cd e2e && npx playwright install chromium
+
+e2e:
+	cd e2e && npm test
 
 contract:
 	node -e "const m=process.version.match(/v(\d+)/); if (+m[1] < 22) { console.error('contract needs Node >= 22, current ' + process.version + ' (try: nvm use 22)'); process.exit(1); }"
