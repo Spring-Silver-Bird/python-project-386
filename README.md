@@ -54,6 +54,8 @@ make docker-up
 make docker-down
 ```
 
+Если порт 8000 занят, укажите другой: `WEB_PORT=8001 make docker-up`.
+
 Коммиты — Conventional Commits (`feat: ...`, `fix: ...`, ...). После мержа в `main` `release-please` сам создаёт release-PR. Подробнее — в `AGENTS.md`.
 
 ---
