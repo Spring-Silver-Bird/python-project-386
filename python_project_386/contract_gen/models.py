@@ -15,7 +15,16 @@ class Status(Enum):
 
 class Booking(BaseModel):
     id: int
-    event_type_id: int
+    event_type_id: int | None = Field(
+        None, description='Отсутствует, если гость выбрал свой тип встречи.'
+    )
+    eventTypeTitle: str = Field(
+        ...,
+        description='Название типа встречи на момент брони (для своего типа — введённое гостем).',
+    )
+    eventTypeDescription: str | None = Field(
+        None, description='Описание своего типа встречи, если гость его указал.'
+    )
     owner_id: int
     slotStartAt: AwareDatetime
     guestName: str
@@ -23,11 +32,9 @@ class Booking(BaseModel):
     status: Status
 
 
-class BookingCreate(BaseModel):
-    event_type_id: int
-    slotStartAt: AwareDatetime
-    guestName: str
-    guestEmail: str = Field(..., description='Email гостя.')
+class CustomEventType(BaseModel):
+    title: str
+    description: str | None = None
 
 
 class Error(BaseModel):
@@ -71,3 +78,15 @@ class Slot(BaseModel):
 
 class Versions(Enum):
     field_1_0_0 = '1.0.0'
+
+
+class BookingCreate(BaseModel):
+    event_type_id: int | None = None
+    owner_id: int | None = Field(
+        None,
+        description='Нужен для своего типа встречи; для EventType выводится из event_type_id.',
+    )
+    customEventType: CustomEventType | None = None
+    slotStartAt: AwareDatetime
+    guestName: str
+    guestEmail: str = Field(..., description='Email гостя.')

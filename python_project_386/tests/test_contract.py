@@ -8,7 +8,16 @@ import json
 from datetime import timedelta
 
 import pytest
-from contract_gen.models import Booking, Error, EventType, EventTypeCreate, Owner, Slot
+from contract_gen.models import (
+    Booking,
+    BookingCreate,
+    CustomEventType,
+    Error,
+    EventType,
+    EventTypeCreate,
+    Owner,
+    Slot,
+)
 from django.utils import timezone
 from python_project_386.calendar_store import MOSCOW_TZ, reset_store
 
@@ -92,6 +101,25 @@ def test_booking_lifecycle_matches_generated_types(client):
     r = client.post(f"/api/bookings/{booking.id}/cancel/")
     assert r.status_code == 200
     assert Booking.model_validate(r.json()).status.value == "cancelled"
+
+
+def test_custom_booking_matches_generated_types(client):
+    payload = BookingCreate(
+        owner_id=1,
+        customEventType=CustomEventType(title="Свой звонок", description="Обсудить проект"),
+        slotStartAt=slot_iso(),
+        guestName="Гость",
+        guestEmail="guest@example.com",
+    )
+    r = client.post(
+        "/api/bookings/",
+        data=payload.model_dump_json(exclude_none=True),
+        content_type="application/json",
+    )
+    assert r.status_code == 201
+    booking = Booking.model_validate(r.json())
+    assert booking.event_type_id is None
+    assert booking.eventTypeTitle == "Свой звонок"
 
 
 def test_validation_errors_match_generated_error_type(client):

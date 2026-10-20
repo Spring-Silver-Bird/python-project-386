@@ -145,20 +145,40 @@ def is_slot_taken(owner_id: int, slot_start: datetime) -> bool:
 
 
 def create_booking(
-    event_type_id: int,
     slot_start: datetime,
     guest_name: str,
     guest_email: str,
     now: datetime,
+    event_type_id: int | None = None,
+    owner_id: int | None = None,
+    custom_event_type: dict | None = None,
 ) -> tuple[dict | None, str | None, int]:
     from django.core.exceptions import ValidationError
     from django.core.validators import validate_email
 
-    event = get_event_type(event_type_id)
-    if event is None:
-        return None, "unknown event_type_id", 400
-    if event["duration_minutes"] != 30:
-        return None, "only 30-minute event types supported", 400
+    if (event_type_id is None) == (custom_event_type is None):
+        return None, "provide event_type_id or customEventType", 400
+
+    if event_type_id is not None:
+        event = get_event_type(event_type_id)
+        if event is None:
+            return None, "unknown event_type_id", 400
+        if event["duration_minutes"] != 30:
+            return None, "only 30-minute event types supported", 400
+        if owner_id is not None and owner_id != event["owner_id"]:
+            return None, "event type does not belong to owner", 400
+        owner_id = event["owner_id"]
+        event_type_title = event["title"]
+        event_type_description = event.get("description")
+    else:
+        if owner_id is None or get_owner(owner_id) is None:
+            return None, "unknown owner_id", 400
+        event_type_title = custom_event_type.get("title")
+        if not isinstance(event_type_title, str) or not event_type_title.strip():
+            return None, "customEventType.title required", 400
+        event_type_title = event_type_title.strip()
+        event_type_description = custom_event_type.get("description")
+
     err = validate_slot_start(slot_start, now)
     if err:
         return None, err, 400
@@ -168,25 +188,27 @@ def create_booking(
         validate_email(guest_email)
     except ValidationError:
         return None, "invalid guestEmail", 400
-    owner_id = event["owner_id"]
     if is_slot_taken(owner_id, slot_start):
         return None, "slot already booked", 409
     global _next_id
     booking = {
         "id": _next_id,
         "event_type_id": event_type_id,
+        "eventTypeTitle": event_type_title,
         "owner_id": owner_id,
         "slotStartAt": _utc_iso(slot_start),
         "guestName": guest_name.strip(),
         "guestEmail": guest_email.strip(),
         "status": "confirmed",
     }
+    if event_type_description is not None:
+        booking["eventTypeDescription"] = event_type_description
     _bookings[_next_id] = booking
     _next_id += 1
     return booking, None, 201
 
 
-def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime, now: datetime) -> list[dict]:
+def build_slots_for_date(owner_id: int, day: datetime, now: datetime) -> list[dict]:
     slots = []
     for hour in range(WORK_START_HOUR, WORK_END_HOUR):
         for minute in (0, 30):

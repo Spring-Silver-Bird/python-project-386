@@ -62,6 +62,25 @@ def create_type(client, **over):
     )
 
 
+def book_custom(client, **over):
+    payload = {
+        "owner_id": 1,
+        "customEventType": {
+            "title": "  Свой звонок  ",
+            "description": "Обсудить проект",
+        },
+        "slotStartAt": slot_iso(),
+        "guestName": "Гость",
+        "guestEmail": "guest@example.com",
+    }
+    payload.update(over)
+    return client.post(
+        "/api/bookings/",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+
+
 def test_index_renders_frontend_shell_without_seed_data(client):
     r = client.get("/")
     assert r.status_code == 200
@@ -74,6 +93,9 @@ def test_index_renders_frontend_shell_without_seed_data(client):
     for element_id in (
         "owner",
         "etype",
+        "customTypeFields",
+        "customEventTypeTitle",
+        "customEventTypeDescription",
         "date",
         "slots",
         "book",
@@ -198,6 +220,7 @@ def test_frontend_owner_scenario_fields():
         "booking.guestName",
         "booking.guestEmail",
         "booking.slotStartAt",
+        "booking.eventTypeTitle",
         "eventTypeTitle(booking.event_type_id)",
         "statusLabel(booking.status)",
         "подтверждена",
@@ -213,6 +236,21 @@ def test_frontend_guest_shows_conflict_message():
         script = app_file.read()
     assert '"slot already booked": "слот уже занят"' in script
     assert '"Ошибка: "' in script
+
+
+def test_frontend_guest_wires_custom_event_type():
+    path = finders.find("app.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    for fragment in (
+        'CUSTOM_TYPE = "custom"',
+        "customTypeFields.hidden",
+        "customEventTypeTitle",
+        "customEventType",
+        "Свой вариант",
+    ):
+        assert fragment in script, fragment
 
 
 def test_frontend_reports_booking_success_after_reloading_slots():
@@ -464,6 +502,63 @@ def test_guest_happy_path_end_to_end(client):
     after_cancel = {s["startAt"]: s for s in client.get(slots_url).json()}
     assert after_cancel[chosen]["isAvailable"] is True
     assert book(client, event_type_id=event_type_id, slotStartAt=chosen).status_code == 201
+
+
+def test_slots_available_without_event_type_id(client):
+    day = (moscow_now() + timedelta(days=1)).date().isoformat()
+    r = client.get(f"/api/slots/?owner_id=1&date={day}")
+    assert r.status_code == 200
+    assert len(r.json()) == 18
+    assert client.get(f"/api/slots/?owner_id=999&date={day}").status_code == 400
+
+
+def test_guest_books_custom_event_type(client):
+    created = book_custom(client)
+    assert created.status_code == 201
+    booking = created.json()
+    assert booking["event_type_id"] is None
+    assert booking["eventTypeTitle"] == "Свой звонок"
+    assert booking["eventTypeDescription"] == "Обсудить проект"
+    assert booking["owner_id"] == 1
+
+    types = client.get("/api/event-types/?owner_id=1").json()
+    assert all(event_type["title"] != "Свой звонок" for event_type in types)
+    listed = client.get("/api/bookings/?owner_id=1").json()
+    assert listed[0]["eventTypeTitle"] == "Свой звонок"
+
+    conflict = book(client, slotStartAt=booking["slotStartAt"])
+    assert conflict.status_code == 409
+
+
+def test_custom_event_type_without_description(client):
+    created = book_custom(
+        client,
+        customEventType={"title": "Без описания"},
+        slotStartAt=slot_iso(days_ahead=2),
+    )
+    assert created.status_code == 201
+    assert "eventTypeDescription" not in created.json()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"owner_id": None},
+        {"owner_id": 999},
+        {"customEventType": None},
+        {"customEventType": "not-an-object"},
+        {"customEventType": {"title": "   "}},
+        {"customEventType": {"title": 123}},
+        {"customEventType": {"title": "Свой", "description": 123}},
+        {"event_type_id": 1},
+        {"event_type_id": 1, "owner_id": 2, "customEventType": None},
+    ],
+)
+def test_custom_booking_rejects_invalid_payload(client, overrides):
+    r = book_custom(client, **overrides)
+    assert r.status_code == 400
+    assert set(r.json()) == {"error"}
+    assert client.get("/api/bookings/?owner_id=1").json() == []
 
 
 def test_slot_is_blocked_across_event_types(client):

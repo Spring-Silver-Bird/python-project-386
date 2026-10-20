@@ -19,7 +19,7 @@ async function openSlots(page: Page, date: string, typeLabel?: string): Promise<
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Показать слоты" })).toBeVisible();
   if (typeLabel) {
-    await page.getByLabel("Тип встречи").selectOption({ label: typeLabel });
+    await page.getByLabel("Тип встречи", { exact: true }).selectOption({ label: typeLabel });
   }
   await page.getByLabel("Дата").fill(date);
   await page.getByRole("button", { name: "Показать слоты" }).click();
@@ -98,6 +98,34 @@ test("второй гость получает отказ на занятый с
 
   await firstGuest.close();
   await secondGuest.close();
+});
+
+test("гость бронирует свой тип встречи", async ({ page }) => {
+  const title = `Свой звонок ${Date.now()}`;
+  const date = moscowDate(4);
+
+  await page.goto("/");
+  await page.getByLabel("Тип встречи", { exact: true }).selectOption({ label: "Свой вариант…" });
+  await expect(page.locator("#customTypeFields")).toBeVisible();
+  await page.getByPlaceholder("Название своего типа").fill(title);
+  await page.getByPlaceholder("Описание своего типа").fill("Свой формат");
+  await page.getByLabel("Дата").fill(date);
+  await page.getByRole("button", { name: "Показать слоты" }).click();
+
+  const slot = page.locator(".slot:not(.taken)").first();
+  await expect(slot).toBeVisible();
+  await slot.click();
+  await page.getByPlaceholder("Ваше имя").fill("Гость Свой");
+  await page.getByPlaceholder("Email").fill("guest-custom@example.com");
+  await page.getByRole("button", { name: "Забронировать" }).click();
+
+  await expect(page.locator("#msg")).toContainText(/Готово! Запись №\d+ создана/);
+
+  await page.goto("/owner/");
+  const upcoming = page.locator("#ownerBookings");
+  await expect(upcoming).toContainText(title);
+  await expect(upcoming).toContainText("Свой формат");
+  await expect(page.locator("#ownerTypes")).not.toContainText(title);
 });
 
 test("владелец создаёт тип, а гость на него записывается", async ({ page }) => {

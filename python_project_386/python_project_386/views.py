@@ -18,6 +18,7 @@ from .calendar_store import (
     create_booking,
     create_event_type,
     get_event_type,
+    get_owner,
     list_bookings,
     list_event_types,
     parse_moscow_dt,
@@ -116,23 +117,31 @@ def api_event_types_create(request):
 def api_slots(request):
     try:
         owner_id = int(request.GET.get("owner_id", ""))
-        event_type_id = int(request.GET.get("event_type_id", ""))
     except ValueError:
-        return JsonResponse({"error": "owner_id/event_type_id required"}, status=400)
+        return JsonResponse({"error": "owner_id required"}, status=400)
+    event_type_raw = request.GET.get("event_type_id")
+    event_type_id = None
+    if event_type_raw is not None:
+        try:
+            event_type_id = int(event_type_raw)
+        except ValueError:
+            return JsonResponse({"error": "invalid event_type_id"}, status=400)
+        event = get_event_type(event_type_id)
+        if event is None or event["owner_id"] != owner_id:
+            return JsonResponse({"error": "unknown event type for owner"}, status=400)
+    elif get_owner(owner_id) is None:
+        return JsonResponse({"error": "unknown owner_id"}, status=400)
     date_str = request.GET.get("date", "")
     try:
         day_date = date.fromisoformat(date_str)
     except ValueError:
         return JsonResponse({"error": "invalid date, use YYYY-MM-DD"}, status=400)
-    event = get_event_type(event_type_id)
-    if event is None or event["owner_id"] != owner_id:
-        return JsonResponse({"error": "unknown event type for owner"}, status=400)
     today = timezone.now().astimezone(MOSCOW_TZ)
     delta = (day_date - today.date()).days
     if delta < 0 or delta > WINDOW_DAYS:
         return JsonResponse({"error": "date outside 14-day window"}, status=400)
     day = datetime(day_date.year, day_date.month, day_date.day, tzinfo=MOSCOW_TZ)
-    return JsonResponse(build_slots_for_date(owner_id, event_type_id, day, today), safe=False)
+    return JsonResponse(build_slots_for_date(owner_id, day, today), safe=False)
 
 
 def api_bookings_list(request):
@@ -163,8 +172,17 @@ def api_bookings_create(request):
     if not isinstance(payload, dict):
         return JsonResponse({"error": "invalid JSON body"}, status=400)
     event_type_id = _as_int(payload.get("event_type_id"))
-    if event_type_id is None:
-        return JsonResponse({"error": "event_type_id required"}, status=400)
+    owner_id = _as_int(payload.get("owner_id"))
+    custom_event_type = payload.get("customEventType")
+    if custom_event_type is not None:
+        if not isinstance(custom_event_type, dict):
+            return JsonResponse({"error": "customEventType must be an object"}, status=400)
+        title = custom_event_type.get("title")
+        description = custom_event_type.get("description")
+        if not isinstance(title, str) or not title.strip():
+            return JsonResponse({"error": "customEventType.title required"}, status=400)
+        if description is not None and not isinstance(description, str):
+            return JsonResponse({"error": "customEventType.description must be a string"}, status=400)
     slot_raw = payload.get("slotStartAt", "")
     slot_start = parse_moscow_dt(slot_raw) if isinstance(slot_raw, str) else None
     if slot_start is None:
@@ -174,11 +192,13 @@ def api_bookings_create(request):
     if not isinstance(guest_name, str) or not isinstance(guest_email, str):
         return JsonResponse({"error": "guestName/guestEmail required"}, status=400)
     booking, err, status = create_booking(
-        event_type_id=event_type_id,
         slot_start=slot_start,
         guest_name=guest_name,
         guest_email=guest_email,
         now=timezone.now().astimezone(MOSCOW_TZ),
+        event_type_id=event_type_id,
+        owner_id=owner_id,
+        custom_event_type=custom_event_type,
     )
     if err:
         return JsonResponse({"error": err}, status=status)

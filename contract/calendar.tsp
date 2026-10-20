@@ -30,7 +30,9 @@ using Versioning;
 
 // ─── scenarios ───────────────────────────────────────────────────
 // Гость: GET / (UI), GET /api/owners/, GET /api/event-types/?owner_id,
-// GET /api/slots/, POST /api/bookings/, POST /api/bookings/{id}/cancel/.
+// GET /api/slots/ (event_type_id необязателен), POST /api/bookings/
+// (тип встречи — существующий event_type_id или свой customEventType),
+// POST /api/bookings/{id}/cancel/.
 //
 // Владелец: GET /owner/ (UI), GET /api/owners/, GET /api/event-types/?owner_id,
 // POST /api/event-types/ (создать тип), GET /api/bookings/?owner_id.

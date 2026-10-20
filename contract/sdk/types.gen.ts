@@ -9,7 +9,18 @@ export type ClientOptions = {
  */
 export type Booking = {
     id: number;
-    event_type_id: number;
+    /**
+     * Отсутствует, если гость выбрал свой тип встречи.
+     */
+    event_type_id?: number;
+    /**
+     * Название типа встречи на момент брони (для своего типа — введённое гостем).
+     */
+    eventTypeTitle: string;
+    /**
+     * Описание своего типа встречи, если гость его указал.
+     */
+    eventTypeDescription?: string;
     owner_id: number;
     slotStartAt: string;
     guestName: string;
@@ -21,16 +32,29 @@ export type Booking = {
 };
 
 /**
- * Тело создания записи.
+ * Тело создания записи. Нужно передать либо event_type_id, либо customEventType (для него обязателен owner_id).
  */
 export type BookingCreate = {
-    event_type_id: number;
+    event_type_id?: number;
+    /**
+     * Нужен для своего типа встречи; для EventType выводится из event_type_id.
+     */
+    owner_id?: number;
+    customEventType?: CustomEventType;
     slotStartAt: string;
     guestName: string;
     /**
      * Email гостя.
      */
     guestEmail: string;
+};
+
+/**
+ * Свой тип встречи гостя: сохраняется только в брони и не становится EventType владельца.
+ */
+export type CustomEventType = {
+    title: string;
+    description?: string;
 };
 
 /**
@@ -307,7 +331,7 @@ export type SlotsListData = {
     path?: never;
     query: {
         owner_id: number;
-        event_type_id: number;
+        event_type_id?: number;
         date: string;
     };
     url: '/api/slots/';

@@ -35,7 +35,7 @@ export const bookingsList = <ThrowOnError extends boolean = false>(options?: Opt
 /**
  * Создание бронирования
  *
- * Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
+ * Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow. Тип встречи — либо event_type_id владельца, либо customEventType с обязательным owner_id; оба одновременно или ни одного — 400.
  */
 export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Options<BookingsCreateData, ThrowOnError>): RequestResult<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError> => (options.client ?? client).post<BookingsCreateResponses, BookingsCreateErrors, ThrowOnError>({
     url: '/api/bookings/',
@@ -84,7 +84,7 @@ export const ownersList = <ThrowOnError extends boolean = false>(options?: Optio
 /**
  * Доступные слоты
  *
- * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. Невалидные/отсутствующие параметры, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
+ * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. event_type_id необязателен: если задан, проверяется принадлежность owner_id, иначе слоты считаются для владельца. Невалидные/отсутствующие параметры, неизвестный owner_id, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
  */
 export const slotsList = <ThrowOnError extends boolean = false>(options: Options<SlotsListData, ThrowOnError>): RequestResult<SlotsListResponses, SlotsListErrors, ThrowOnError> => (options.client ?? client).get<SlotsListResponses, SlotsListErrors, ThrowOnError>({ url: '/api/slots/', ...options });
 

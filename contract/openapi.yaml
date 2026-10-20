@@ -60,7 +60,7 @@ paths:
     post:
       operationId: Bookings_create
       summary: Создание бронирования
-      description: Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow.
+      description: Старт — по сетке :00/:30 в рабочих часах 9:00–18:00 (Europe/Moscow; последний старт 17:30). Окно — календарными днями [today, today + 14] (Europe/Moscow), прошлое отклоняется. Наивный slotStartAt трактуется как Europe/Moscow. Тип встречи — либо event_type_id владельца, либо customEventType с обязательным owner_id; оба одновременно или ни одного — 400.
       parameters: []
       responses:
         '201':
@@ -219,7 +219,7 @@ paths:
     get:
       operationId: Slots_list
       summary: Доступные слоты
-      description: date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. Невалидные/отсутствующие параметры, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
+      description: 'date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. event_type_id необязателен: если задан, проверяется принадлежность owner_id, иначе слоты считаются для владельца. Невалидные/отсутствующие параметры, неизвестный owner_id, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.'
       parameters:
         - name: owner_id
           in: query
@@ -230,7 +230,7 @@ paths:
           explode: false
         - name: event_type_id
           in: query
-          required: true
+          required: false
           schema:
             type: integer
             format: int32
@@ -288,7 +288,7 @@ components:
       type: object
       required:
         - id
-        - event_type_id
+        - eventTypeTitle
         - owner_id
         - slotStartAt
         - guestName
@@ -301,6 +301,13 @@ components:
         event_type_id:
           type: integer
           format: int32
+          description: Отсутствует, если гость выбрал свой тип встречи.
+        eventTypeTitle:
+          type: string
+          description: Название типа встречи на момент брони (для своего типа — введённое гостем).
+        eventTypeDescription:
+          type: string
+          description: Описание своего типа встречи, если гость его указал.
         owner_id:
           type: integer
           format: int32
@@ -321,7 +328,6 @@ components:
     BookingCreate:
       type: object
       required:
-        - event_type_id
         - slotStartAt
         - guestName
         - guestEmail
@@ -329,6 +335,12 @@ components:
         event_type_id:
           type: integer
           format: int32
+        owner_id:
+          type: integer
+          format: int32
+          description: Нужен для своего типа встречи; для EventType выводится из event_type_id.
+        customEventType:
+          $ref: '#/components/schemas/CustomEventType'
         slotStartAt:
           type: string
           format: date-time
@@ -337,7 +349,17 @@ components:
         guestEmail:
           type: string
           description: Email гостя.
-      description: Тело создания записи.
+      description: Тело создания записи. Нужно передать либо event_type_id, либо customEventType (для него обязателен owner_id).
+    CustomEventType:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      description: 'Свой тип встречи гостя: сохраняется только в брони и не становится EventType владельца.'
     Error:
       type: object
       required:
