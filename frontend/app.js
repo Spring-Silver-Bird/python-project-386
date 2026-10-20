@@ -21,6 +21,10 @@
     ui.setMessage(msg, text);
   }
 
+  function flashMessage(text) {
+    ui.flashMessage(msg, text);
+  }
+
   function errorText(result, fallback) {
     return ui.errorText(result, fallback, { "slot already booked": "слот уже занят" });
   }
@@ -126,7 +130,7 @@
             return;
           }
           var reloaded = await loadSlots();
-          setMessage(
+          flashMessage(
             reloaded
               ? "Запись №" + booking.id + " отменена"
               : "Запись №" + booking.id + " отменена, но слоты не удалось обновить"
@@ -182,7 +186,7 @@
     slotInput.value = "";
     form.reset();
     var reloaded = await loadSlots();
-    setMessage(
+    flashMessage(
       reloaded
         ? "Готово! Запись №" + bookingId + " создана"
         : "Запись №" + bookingId + " создана, но слоты не удалось обновить"

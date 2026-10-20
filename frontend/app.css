@@ -53,6 +53,39 @@ button {
   font-weight: 600;
 }
 
+#msg.flash {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  min-height: 0;
+  max-width: min(360px, calc(100vw - 2rem));
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  animation: flash-in 180ms ease-out;
+}
+
+#msg.flash-success {
+  background: #2e7d32;
+}
+
+#msg.flash-error {
+  background: #c62828;
+}
+
+@keyframes flash-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .muted {
   color: #777;
 }
