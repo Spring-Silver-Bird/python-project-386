@@ -48,12 +48,16 @@ test("гость бронирует слот и видит подтвержде�
     email: "guest-one@example.com",
   });
 
-  await expect(page.locator("#msg")).toContainText(/Готово! Запись №\d+ создана/);
+  const msg = page.locator("#msg");
+  await expect(msg).toContainText(/Готово! Запись №\d+ создана/);
+  await expect(msg).toHaveClass(/flash-success/);
   await expect(page.locator("#my")).toContainText("guest-one@example.com");
 
   const taken = page.locator(".grid .slot.taken").filter({ hasText: label });
   await expect(taken).toBeVisible();
   await expect(taken).toBeDisabled();
+
+  await expect(msg).toHaveText("", { timeout: 8000 });
 });
 
 test("второй гость получает отказ на занятый слот", async ({ browser }) => {
