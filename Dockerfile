@@ -12,6 +12,7 @@ COPY pyproject.toml uv.lock* ./
 RUN uv sync --frozen --no-dev
 
 COPY python_project_386 ./python_project_386
+COPY frontend ./frontend
 COPY .env.example ./.env.example
 
 WORKDIR /app/python_project_386

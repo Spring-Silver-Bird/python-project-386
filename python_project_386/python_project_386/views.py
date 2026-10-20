@@ -2,12 +2,12 @@
 
 import json
 from datetime import date, datetime
+from functools import wraps
 
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
 
 from .calendar_store import (
     EVENT_TYPES,
@@ -23,27 +23,34 @@ from .calendar_store import (
 )
 
 
+def api_methods(*methods):
+    """Allow only the given HTTP methods, answering others with the Error envelope."""
+
+    def decorator(view):
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            if request.method not in methods:
+                response = JsonResponse({"error": "method not allowed"}, status=405)
+                response["Allow"] = ", ".join(methods)
+                return response
+            return view(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def index(request):
-    default_date = timezone.now().astimezone(MOSCOW_TZ).date().isoformat()
-    return render(
-        request,
-        "index.html",
-        {
-            "owners": OWNERS,
-            "event_types": EVENT_TYPES,
-            "owners_json": json.dumps(OWNERS),
-            "event_types_json": json.dumps(EVENT_TYPES),
-            "default_date": default_date,
-        },
-    )
+    """Serve the frontend shell; all data comes from the JSON API."""
+    return render(request, "index.html")
 
 
-@require_GET
+@api_methods("GET")
 def api_owners(request):
     return JsonResponse(OWNERS, safe=False)
 
 
-@require_GET
+@api_methods("GET")
 def api_event_types(request):
     owner_id = request.GET.get("owner_id")
     items = EVENT_TYPES
@@ -56,7 +63,7 @@ def api_event_types(request):
     return JsonResponse(items, safe=False)
 
 
-@require_GET
+@api_methods("GET")
 def api_slots(request):
     try:
         owner_id = int(request.GET.get("owner_id", ""))
@@ -79,7 +86,6 @@ def api_slots(request):
     return JsonResponse(build_slots_for_date(owner_id, event_type_id, day, today), safe=False)
 
 
-@require_GET
 def api_bookings_list(request):
     owner_id = request.GET.get("owner_id")
     oid = None
@@ -92,17 +98,14 @@ def api_bookings_list(request):
 
 
 @csrf_exempt
+@api_methods("GET", "POST")
 def api_bookings(request):
     """GET /api/bookings/ -> list, POST /api/bookings/ -> create (per contract)."""
     if request.method == "GET":
         return api_bookings_list(request)
-    if request.method == "POST":
-        return api_bookings_create(request)
-    return JsonResponse({"error": "method not allowed"}, status=405)
+    return api_bookings_create(request)
 
 
-@csrf_exempt
-@require_POST
 def api_bookings_create(request):
     try:
         payload = json.loads(request.body.decode("utf-8") or "{}")
@@ -129,9 +132,13 @@ def api_bookings_create(request):
 
 
 @csrf_exempt
-@require_POST
-def api_booking_cancel(request, booking_id: int):
-    booking = cancel_booking(booking_id)
-    if booking is None:
+@api_methods("POST")
+def api_booking_cancel(request, booking_id: str):
+    try:
+        bid = int(booking_id)
+    except ValueError:
         return JsonResponse({"error": "not found"}, status=404)
+    booking, err, status = cancel_booking(bid, timezone.now().astimezone(MOSCOW_TZ))
+    if err:
+        return JsonResponse({"error": err}, status=status)
     return JsonResponse(booking)

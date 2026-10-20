@@ -43,12 +43,16 @@ def get_booking(booking_id: int) -> dict | None:
     return _bookings.get(booking_id)
 
 
-def cancel_booking(booking_id: int) -> dict | None:
+def cancel_booking(booking_id: int, now: datetime) -> tuple[dict | None, str | None, int]:
     booking = _bookings.get(booking_id)
     if booking is None:
-        return None
+        return None, "not found", 404
+    if booking["status"] == "cancelled":
+        return booking, None, 200
+    if parse_moscow_dt(booking["slotStartAt"]) <= now:
+        return None, "cannot cancel past booking", 400
     booking["status"] = "cancelled"
-    return booking
+    return booking, None, 200
 
 
 def get_event_type(event_type_id: int) -> dict | None:

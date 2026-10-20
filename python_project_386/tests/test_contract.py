@@ -74,3 +74,40 @@ def test_booking_lifecycle_matches_generated_types(client):
     r = client.post(f"/api/bookings/{booking.id}/cancel/")
     assert r.status_code == 200
     assert Booking.model_validate(r.json()).status.value == "cancelled"
+
+
+def test_validation_errors_match_generated_error_type(client):
+    responses = [
+        client.get("/api/event-types/?owner_id=abc"),
+        client.get("/api/bookings/?owner_id=abc"),
+        client.get("/api/slots/"),
+        client.get("/api/slots/?owner_id=1&event_type_id=1&date=not-a-date"),
+    ]
+    for r in responses:
+        assert r.status_code == 400
+        Error.model_validate(r.json())
+
+
+def test_missing_booking_error_matches_generated_error_type(client):
+    r = client.post("/api/bookings/999/cancel/")
+    assert r.status_code == 404
+    Error.model_validate(r.json())
+
+
+def test_method_not_allowed_matches_generated_error_type(client):
+    for r in (client.put("/api/owners/"), client.get("/api/bookings/1/cancel/")):
+        assert r.status_code == 405
+        Error.model_validate(r.json())
+
+
+def test_conflict_error_matches_generated_error_type(client):
+    payload = {
+        "event_type_id": 1,
+        "slotStartAt": slot_iso(),
+        "guestName": "Гость",
+        "guestEmail": "guest@example.com",
+    }
+    assert client.post("/api/bookings/", data=json.dumps(payload), content_type="application/json").status_code == 201
+    r = client.post("/api/bookings/", data=json.dumps(payload), content_type="application/json")
+    assert r.status_code == 409
+    Error.model_validate(r.json())

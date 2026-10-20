@@ -12,7 +12,7 @@ model Error {
 }
 
 @error
-@doc("400 — ошибка валидации (сетка/слот/окно/email).")
+@doc("400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).")
 model BadRequest {
   @statusCode statusCode: 400;
   @body body: Error;
@@ -29,6 +29,13 @@ model NotFound {
 @doc("409 — слот уже занят.")
 model SlotConflict {
   @statusCode statusCode: 409;
+  @body body: Error;
+}
+
+@error
+@doc("405 — метод не поддерживается.")
+model MethodNotAllowed {
+  @statusCode statusCode: 405;
   @body body: Error;
 }
 

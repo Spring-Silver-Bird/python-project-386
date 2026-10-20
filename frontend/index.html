@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Календарь звонков</title>
+  <link rel="stylesheet" href="{% static 'app.css' %}" />
+</head>
+<body>
+  <h1>Календарь звонков</h1>
+  <p>Слот — 30 минут, окно — 14 дней, повторная запись на слот запрещена.</p>
+
+  <label>Владелец <select id="owner"></select></label>
+  <label>Тип встречи <select id="etype"></select></label>
+  <label>Дата <input type="date" id="date" /></label>
+  <button id="load" type="button">Показать слоты</button>
+
+  <div class="grid" id="slots"></div>
+
+  <h2>Бронирование</h2>
+  <form id="book">
+    <input id="guestName" placeholder="Ваше имя" required />
+    <input id="guestEmail" type="email" placeholder="Email" required />
+    <input id="slotStartAt" placeholder="slotStartAt (ISO)" readonly required />
+    <button type="submit">Забронировать</button>
+  </form>
+  <p id="msg"></p>
+
+  <h2>Мои записи</h2>
+  <ul id="my"></ul>
+
+  <script src="{% static 'js/calendar-sdk.js' %}"></script>
+  <script src="{% static 'app.js' %}"></script>
+</body>
+</html>

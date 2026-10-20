@@ -21,6 +21,7 @@ paths:
     get:
       operationId: Bookings_list
       summary: Список записей
+      description: owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot.
       parameters:
         - name: owner_id
           in: query
@@ -38,6 +39,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Booking'
+        '400':
+          description: 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: 405 — метод не поддерживается.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       operationId: Bookings_create
       summary: Создание бронирования
@@ -51,7 +64,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Booking'
         '400':
-          description: 400 — ошибка валидации (сетка/слот/окно/email).
+          description: 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: 405 — метод не поддерживается.
           content:
             application/json:
               schema:
@@ -72,6 +91,7 @@ paths:
     post:
       operationId: Bookings_cancel
       summary: Отмена записи
+      description: 'Идемпотентно: повторная отмена уже cancelled Booking — 200 с тем же статусом. Неизвестный id — 404. Отмена прошедшего (start ≤ now) confirmed Booking — 400.'
       parameters:
         - name: id
           in: path
@@ -86,8 +106,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Booking'
+        '400':
+          description: 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: 404 — не найдено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: 405 — метод не поддерживается.
           content:
             application/json:
               schema:
@@ -96,6 +128,7 @@ paths:
     get:
       operationId: EventTypes_list
       summary: Список типов встреч
+      description: owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.
       parameters:
         - name: owner_id
           in: query
@@ -113,6 +146,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EventType'
+        '400':
+          description: 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: 405 — метод не поддерживается.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/owners/:
     get:
       operationId: Owners_list
@@ -127,11 +172,17 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Owner'
+        '405':
+          description: 405 — метод не поддерживается.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/slots/:
     get:
       operationId: Slots_list
       summary: Доступные слоты
-      description: date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false.
+      description: date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. Невалидные/отсутствующие параметры, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
       parameters:
         - name: owner_id
           in: query
@@ -164,7 +215,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/Slot'
         '400':
-          description: 400 — ошибка валидации (сетка/слот/окно/email).
+          description: 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: 405 — метод не поддерживается.
           content:
             application/json:
               schema:

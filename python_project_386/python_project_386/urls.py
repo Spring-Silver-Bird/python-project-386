@@ -11,7 +11,7 @@ urlpatterns = [
     path("api/slots/", views.api_slots, name="api-slots"),
     path("api/bookings/", views.api_bookings, name="api-bookings"),
     path(
-        "api/bookings/<int:booking_id>/cancel/",
+        "api/bookings/<str:booking_id>/cancel/",
         views.api_booking_cancel,
         name="api-booking-cancel",
     ),

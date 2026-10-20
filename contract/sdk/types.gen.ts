@@ -105,6 +105,19 @@ export type BookingsListData = {
     url: '/api/bookings/';
 };
 
+export type BookingsListErrors = {
+    /**
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     */
+    400: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type BookingsListError = BookingsListErrors[keyof BookingsListErrors];
+
 export type BookingsListResponses = {
     /**
      * The request has succeeded.
@@ -123,9 +136,13 @@ export type BookingsCreateData = {
 
 export type BookingsCreateErrors = {
     /**
-     * 400 — ошибка валидации (сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
      */
     400: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
     /**
      * 409 — слот уже занят.
      */
@@ -154,9 +171,17 @@ export type BookingsCancelData = {
 
 export type BookingsCancelErrors = {
     /**
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     */
+    400: Error;
+    /**
      * 404 — не найдено.
      */
     404: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
 };
 
 export type BookingsCancelError = BookingsCancelErrors[keyof BookingsCancelErrors];
@@ -179,6 +204,19 @@ export type EventTypesListData = {
     url: '/api/event-types/';
 };
 
+export type EventTypesListErrors = {
+    /**
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
+     */
+    400: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type EventTypesListError = EventTypesListErrors[keyof EventTypesListErrors];
+
 export type EventTypesListResponses = {
     /**
      * The request has succeeded.
@@ -194,6 +232,15 @@ export type OwnersListData = {
     query?: never;
     url: '/api/owners/';
 };
+
+export type OwnersListErrors = {
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
+};
+
+export type OwnersListError = OwnersListErrors[keyof OwnersListErrors];
 
 export type OwnersListResponses = {
     /**
@@ -217,9 +264,13 @@ export type SlotsListData = {
 
 export type SlotsListErrors = {
     /**
-     * 400 — ошибка валидации (сетка/слот/окно/email).
+     * 400 — ошибка валидации запроса (параметры, сетка/слот/окно/email).
      */
     400: Error;
+    /**
+     * 405 — метод не поддерживается.
+     */
+    405: Error;
 };
 
 export type SlotsListError = SlotsListErrors[keyof SlotsListErrors];

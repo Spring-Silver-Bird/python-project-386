@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListResponses, EventTypesListData, EventTypesListResponses, OwnersListData, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
+import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -27,8 +27,10 @@ export const siteIndex = <ThrowOnError extends boolean = false>(options?: Option
 
 /**
  * Список записей
+ *
+ * owner_id — int32; невалидное значение — 400, неизвестный owner даёт пустой список. Возвращает confirmed и cancelled, упорядочено по старту Slot.
  */
-export const bookingsList = <ThrowOnError extends boolean = false>(options?: Options<BookingsListData, ThrowOnError>): RequestResult<BookingsListResponses, unknown, ThrowOnError> => (options?.client ?? client).get<BookingsListResponses, unknown, ThrowOnError>({ url: '/api/bookings/', ...options });
+export const bookingsList = <ThrowOnError extends boolean = false>(options?: Options<BookingsListData, ThrowOnError>): RequestResult<BookingsListResponses, BookingsListErrors, ThrowOnError> => (options?.client ?? client).get<BookingsListResponses, BookingsListErrors, ThrowOnError>({ url: '/api/bookings/', ...options });
 
 /**
  * Создание бронирования
@@ -46,22 +48,26 @@ export const bookingsCreate = <ThrowOnError extends boolean = false>(options: Op
 
 /**
  * Отмена записи
+ *
+ * Идемпотентно: повторная отмена уже cancelled Booking — 200 с тем же статусом. Неизвестный id — 404. Отмена прошедшего (start ≤ now) confirmed Booking — 400.
  */
 export const bookingsCancel = <ThrowOnError extends boolean = false>(options: Options<BookingsCancelData, ThrowOnError>): RequestResult<BookingsCancelResponses, BookingsCancelErrors, ThrowOnError> => (options.client ?? client).post<BookingsCancelResponses, BookingsCancelErrors, ThrowOnError>({ url: '/api/bookings/{id}/cancel/', ...options });
 
 /**
  * Список типов встреч
+ *
+ * owner_id — int32; невалидное значение — 400. Неизвестный owner даёт пустой список.
  */
-export const eventTypesList = <ThrowOnError extends boolean = false>(options?: Options<EventTypesListData, ThrowOnError>): RequestResult<EventTypesListResponses, unknown, ThrowOnError> => (options?.client ?? client).get<EventTypesListResponses, unknown, ThrowOnError>({ url: '/api/event-types/', ...options });
+export const eventTypesList = <ThrowOnError extends boolean = false>(options?: Options<EventTypesListData, ThrowOnError>): RequestResult<EventTypesListResponses, EventTypesListErrors, ThrowOnError> => (options?.client ?? client).get<EventTypesListResponses, EventTypesListErrors, ThrowOnError>({ url: '/api/event-types/', ...options });
 
 /**
  * Список владельцев
  */
-export const ownersList = <ThrowOnError extends boolean = false>(options?: Options<OwnersListData, ThrowOnError>): RequestResult<OwnersListResponses, unknown, ThrowOnError> => (options?.client ?? client).get<OwnersListResponses, unknown, ThrowOnError>({ url: '/api/owners/', ...options });
+export const ownersList = <ThrowOnError extends boolean = false>(options?: Options<OwnersListData, ThrowOnError>): RequestResult<OwnersListResponses, OwnersListErrors, ThrowOnError> => (options?.client ?? client).get<OwnersListResponses, OwnersListErrors, ThrowOnError>({ url: '/api/owners/', ...options });
 
 /**
  * Доступные слоты
  *
- * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false.
+ * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. Невалидные/отсутствующие параметры, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
  */
 export const slotsList = <ThrowOnError extends boolean = false>(options: Options<SlotsListData, ThrowOnError>): RequestResult<SlotsListResponses, SlotsListErrors, ThrowOnError> => (options.client ?? client).get<SlotsListResponses, SlotsListErrors, ThrowOnError>({ url: '/api/slots/', ...options });

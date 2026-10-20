@@ -4,7 +4,7 @@
 [![hexlet-check](https://github.com/Spring-Silver-Bird/python-project-386/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/Spring-Silver-Bird/python-project-386/actions)
 [![ci](https://github.com/Spring-Silver-Bird/python-project-386/actions/workflows/ci.yml/badge.svg)](https://github.com/Spring-Silver-Bird/python-project-386/actions/workflows/ci.yml)
 
-Сервис бронирования звонков (каркас). Django-бэкенд + Django-templates фронтенд.
+Сервис бронирования звонков (каркас). Django-бэкенд (JSON API) + отдельный фронтенд в `frontend/` на сгенерированном SDK.
 
 Учебный проект Хекслета: https://ru.hexlet.io/programs/python
 Как это должно работать: https://files.hexlet.app/a/2ipc5m

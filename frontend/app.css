@@ -1,0 +1,54 @@
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 860px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+label {
+  display: block;
+  margin: 0.35rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 1rem 0;
+}
+
+.slot {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #e8f5e9;
+}
+
+.slot.taken {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.slot.sel {
+  outline: 2px solid #1976d2;
+}
+
+form {
+  display: grid;
+  gap: 8px;
+  max-width: 420px;
+}
+
+input,
+select,
+button {
+  padding: 8px;
+  font-size: 1rem;
+}
+
+#msg {
+  min-height: 1.5em;
+  font-weight: 600;
+}
