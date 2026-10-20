@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesCreateData, EventTypesCreateErrors, EventTypesCreateResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
+import type { BookingsCancelData, BookingsCancelErrors, BookingsCancelResponses, BookingsCreateData, BookingsCreateErrors, BookingsCreateResponses, BookingsListData, BookingsListErrors, BookingsListResponses, EventTypesCreateData, EventTypesCreateErrors, EventTypesCreateResponses, EventTypesListData, EventTypesListErrors, EventTypesListResponses, OwnerSiteOwnerData, OwnerSiteOwnerResponses, OwnersListData, OwnersListErrors, OwnersListResponses, SiteIndexData, SiteIndexResponses, SlotsListData, SlotsListErrors, SlotsListResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,7 +21,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * UI календаря
  *
- * Статическая оболочка фронтенда; данные загружаются только через API.
+ * Статическая оболочка гостевой страницы; данные загружаются только через API.
  */
 export const siteIndex = <ThrowOnError extends boolean = false>(options?: Options<SiteIndexData, ThrowOnError>): RequestResult<SiteIndexResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SiteIndexResponses, unknown, ThrowOnError>({ url: '/', ...options });
 
@@ -87,3 +87,10 @@ export const ownersList = <ThrowOnError extends boolean = false>(options?: Optio
  * date — YYYY-MM-DD (Europe/Moscow), день в [today, today + 14]. Слоты 9:00–18:00 по сетке :00/:30; прошедшее время — isAvailable false. Невалидные/отсутствующие параметры, неизвестный или чужой event_type_id, неверная дата или дата вне окна — 400.
  */
 export const slotsList = <ThrowOnError extends boolean = false>(options: Options<SlotsListData, ThrowOnError>): RequestResult<SlotsListResponses, SlotsListErrors, ThrowOnError> => (options.client ?? client).get<SlotsListResponses, SlotsListErrors, ThrowOnError>({ url: '/api/slots/', ...options });
+
+/**
+ * UI страницы владельца
+ *
+ * Статическая оболочка страницы владельца; типы встреч и брони загружаются через API.
+ */
+export const ownerSiteOwner = <ThrowOnError extends boolean = false>(options?: Options<OwnerSiteOwnerData, ThrowOnError>): RequestResult<OwnerSiteOwnerResponses, unknown, ThrowOnError> => (options?.client ?? client).get<OwnerSiteOwnerResponses, unknown, ThrowOnError>({ url: '/owner/', ...options });

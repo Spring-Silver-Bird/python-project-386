@@ -11,6 +11,12 @@ model Error {
   error: string;
 }
 
+@doc("HTML-оболочка фронтенда; данные загружаются через API.")
+model HtmlPage {
+  @header contentType: "text/html";
+  @body body: string;
+}
+
 @error
 @doc("400 — ошибка валидации запроса (параметры, сетка/слот/окно, email, поля EventType).")
 model BadRequest {

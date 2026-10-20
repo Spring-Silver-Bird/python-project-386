@@ -10,6 +10,7 @@
 <body>
   <h1>Календарь звонков</h1>
   <p>Слот — 30 минут, окно — 14 дней, повторная запись на слот запрещена.</p>
+  <p><a href="/owner/">Страница владельца</a></p>
 
   <label>Владелец <select id="owner"></select></label>
   <label>Тип встречи <select id="etype"></select></label>
@@ -29,21 +30,6 @@
 
   <h2>Мои записи</h2>
   <ul id="my"></ul>
-
-  <h2>Владелец</h2>
-  <h3>Типы встреч</h3>
-  <ul id="ownerTypes"></ul>
-  <form id="createType">
-    <input id="eventTypeTitle" placeholder="Название типа встречи" required />
-    <input id="eventTypeDescription" placeholder="Описание (необязательно)" />
-    <select id="eventTypeDuration" aria-label="Длительность, минут">
-      <option value="30">30 минут</option>
-    </select>
-    <button type="submit">Создать тип встречи</button>
-  </form>
-
-  <h3>Предстоящие встречи</h3>
-  <ul id="ownerBookings"></ul>
 
   <script src="{% static 'js/calendar-sdk.js' %}"></script>
   <script src="{% static 'app.js' %}"></script>

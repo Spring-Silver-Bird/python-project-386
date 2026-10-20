@@ -8,7 +8,7 @@ Status: accepted. Date: 2026-10-20. Partially supersedes ADR-0005.
 
 ## Decision
 
-Owner остаётся фиксированным сидом, CRUD владельцев не вводится. Для EventType в v1 добавлены только список (`GET /api/event-types/?owner_id=`) и создание (`POST /api/event-types/`). Создание принимает `owner_id`, `title`, опциональный `description` и `duration_minutes = 30`; владелец должен существовать, `title` — непустая строка. Редактирование и удаление EventType, а также отдельный HTML-эндпоинт владельца не вводятся: UI использует те же API.
+Owner остаётся фиксированным сидом, CRUD владельцев не вводится. Для EventType в v1 добавлены только список (`GET /api/event-types/?owner_id=`) и создание (`POST /api/event-types/`). Создание принимает `owner_id`, `title`, опциональный `description` и `duration_minutes = 30`; владелец должен существовать, `title` — непустая строка. Редактирование и удаление EventType не вводятся. UI страницы владельца — отдельная статическая оболочка `GET /owner/`; данные и действия идут через те же API.
 
 ## Consequences
 

@@ -29,14 +29,14 @@ using Http;
 using Versioning;
 
 // ─── scenarios ───────────────────────────────────────────────────
-// Гость: GET /api/owners/, GET /api/event-types/?owner_id, GET /api/slots/,
-// POST /api/bookings/, POST /api/bookings/{id}/cancel/.
+// Гость: GET / (UI), GET /api/owners/, GET /api/event-types/?owner_id,
+// GET /api/slots/, POST /api/bookings/, POST /api/bookings/{id}/cancel/.
 //
-// Владелец: GET /api/owners/, GET /api/event-types/?owner_id (свои типы),
+// Владелец: GET /owner/ (UI), GET /api/owners/, GET /api/event-types/?owner_id,
 // POST /api/event-types/ (создать тип), GET /api/bookings/?owner_id.
 // Для предстоящих встреч клиент берёт confirmed с slotStartAt ≥ now.
 // Данные брони: guestName/guestEmail, slotStartAt, event_type_id → EventType.title.
-// Отдельного HTML-эндпоинта владельца нет: UI использует те же API.
+// HTML-оболочки только отдают фронтенд; данные и действия — через API.
 
 // ─── info / metadata ─────────────────────────────────────────────
 

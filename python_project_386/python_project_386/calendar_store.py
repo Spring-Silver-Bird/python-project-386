@@ -1,6 +1,6 @@
 """In-memory store + validation for call calendar (no DB needed)."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 MOSCOW_TZ = ZoneInfo("Europe/Moscow")
@@ -113,6 +113,11 @@ def parse_moscow_dt(value: str) -> datetime | None:
     return dt.astimezone(MOSCOW_TZ)
 
 
+def _utc_iso(dt: datetime) -> str:
+    """Serialize as utcDateTime per contract (Z suffix)."""
+    return dt.astimezone(UTC).isoformat().replace("+00:00", "Z")
+
+
 def validate_slot_start(dt: datetime, now: datetime) -> str | None:
     if dt.minute not in (0, 30) or dt.second != 0 or dt.microsecond != 0:
         return "slot must start at :00 or :30"
@@ -171,7 +176,7 @@ def create_booking(
         "id": _next_id,
         "event_type_id": event_type_id,
         "owner_id": owner_id,
-        "slotStartAt": slot_start.isoformat(),
+        "slotStartAt": _utc_iso(slot_start),
         "guestName": guest_name.strip(),
         "guestEmail": guest_email.strip(),
         "status": "confirmed",
@@ -190,8 +195,8 @@ def build_slots_for_date(owner_id: int, event_type_id: int, day: datetime, now: 
             taken = is_slot_taken(owner_id, start) or start <= now
             slots.append(
                 {
-                    "startAt": start.isoformat(),
-                    "endAt": end.isoformat(),
+                    "startAt": _utc_iso(start),
+                    "endAt": _utc_iso(end),
                     "isAvailable": not taken,
                 }
             )

@@ -102,7 +102,7 @@ export type SiteIndexData = {
 
 export type SiteIndexResponses = {
     /**
-     * The request has succeeded.
+     * HTML-оболочка фронтенда; данные загружаются через API.
      */
     200: string;
 };
@@ -325,3 +325,19 @@ export type SlotsListResponses = {
 };
 
 export type SlotsListResponse = SlotsListResponses[keyof SlotsListResponses];
+
+export type OwnerSiteOwnerData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/owner/';
+};
+
+export type OwnerSiteOwnerResponses = {
+    /**
+     * HTML-оболочка фронтенда; данные загружаются через API.
+     */
+    200: string;
+};
+
+export type OwnerSiteOwnerResponse = OwnerSiteOwnerResponses[keyof OwnerSiteOwnerResponses];

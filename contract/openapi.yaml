@@ -8,13 +8,13 @@ paths:
     get:
       operationId: Site_index
       summary: UI календаря
-      description: Статическая оболочка фронтенда; данные загружаются только через API.
+      description: Статическая оболочка гостевой страницы; данные загружаются только через API.
       parameters: []
       responses:
         '200':
-          description: The request has succeeded.
+          description: HTML-оболочка фронтенда; данные загружаются через API.
           content:
-            text/plain:
+            text/html:
               schema:
                 type: string
   /api/bookings/:
@@ -257,6 +257,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /owner/:
+    get:
+      operationId: OwnerSite_owner
+      summary: UI страницы владельца
+      description: Статическая оболочка страницы владельца; типы встреч и брони загружаются через API.
+      parameters: []
+      responses:
+        '200':
+          description: HTML-оболочка фронтенда; данные загружаются через API.
+          content:
+            text/html:
+              schema:
+                type: string
 components:
   schemas:
     Booking:

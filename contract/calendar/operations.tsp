@@ -10,8 +10,16 @@ namespace CallCalendar;
 interface Site {
   @get
   @summary("UI календаря")
-  @doc("Статическая оболочка фронтенда; данные загружаются только через API.")
-  index(): string;
+  @doc("Статическая оболочка гостевой страницы; данные загружаются только через API.")
+  index(): HtmlPage;
+}
+
+@route("/owner/")
+interface OwnerSite {
+  @get
+  @summary("UI страницы владельца")
+  @doc("Статическая оболочка страницы владельца; типы встреч и брони загружаются через API.")
+  owner(): HtmlPage;
 }
 
 @route("/api/owners/")

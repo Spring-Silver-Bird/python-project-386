@@ -69,6 +69,7 @@ def test_index_renders_frontend_shell_without_seed_data(client):
     assert "Календарь звонков" in content
     assert "calendar-sdk" in content  # фронтенд пользуется сгенерированным SDK
     assert "app.js" in content
+    assert 'href="/owner/"' in content
     # UI даёт выбрать владельца/тип/дату/слот, забронировать и увидеть свои записи.
     for element_id in (
         "owner",
@@ -79,24 +80,55 @@ def test_index_renders_frontend_shell_without_seed_data(client):
         "guestName",
         "guestEmail",
         "my",
-        "ownerTypes",
-        "createType",
-        "eventTypeTitle",
-        "eventTypeDescription",
-        "eventTypeDuration",
-        "ownerBookings",
+        "msg",
     ):
         assert f'id="{element_id}"' in content
-    assert '<option value="30">' in content
     # Данные приходят только из API, сервер их в HTML не встраивает.
     assert "Алекс" not in content
     assert "alex@example.com" not in content
     assert "Звонок 30 минут" not in content
 
 
+def test_owner_page_renders_shell_without_seed_data(client):
+    r = client.get("/owner/")
+    assert r.status_code == 200
+    content = r.content.decode()
+    assert "Календарь звонков" in content
+    assert "calendar-sdk" in content
+    assert "owner.js" in content
+    assert 'href="/"' in content
+    assert '<option value="30">' in content
+    for element_id in (
+        "owner",
+        "ownerTypes",
+        "createType",
+        "eventTypeTitle",
+        "eventTypeDescription",
+        "eventTypeDuration",
+        "ownerBookings",
+        "msg",
+    ):
+        assert f'id="{element_id}"' in content
+    assert "Алекс" not in content
+    assert "alex@example.com" not in content
+    assert "Звонок 30 минут" not in content
+
+
+def test_pages_are_served_as_html(client):
+    for url in ("/", "/owner/"):
+        r = client.get(url)
+        assert r.status_code == 200
+        assert r["Content-Type"].startswith("text/html")
+
+
+def test_pages_only_allow_get(client):
+    for url in ("/", "/owner/"):
+        assert client.post(url).status_code == 405
+
+
 def test_frontend_assets_are_discoverable():
-    assert finders.find("app.js") is not None
-    assert finders.find("app.css") is not None
+    for asset in ("app.js", "owner.js", "app.css"):
+        assert finders.find(asset) is not None
 
 
 def test_sdk_bundle_exposes_calendar_operations():
@@ -124,17 +156,35 @@ def test_frontend_app_wires_sdk_operations():
     operations = (
         "ownersList",
         "eventTypesList",
-        "eventTypesCreate",
         "slotsList",
         "bookingsCreate",
         "bookingsCancel",
     )
     for operation in operations:
         assert operation in script
+    assert "fetch(" not in script
+    assert "XMLHttpRequest" not in script
+
+
+def test_frontend_owner_wires_sdk_operations():
+    path = finders.find("owner.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    operations = (
+        "ownersList",
+        "eventTypesList",
+        "eventTypesCreate",
+        "bookingsList",
+    )
+    for operation in operations:
+        assert operation in script
+    assert "fetch(" not in script
+    assert "XMLHttpRequest" not in script
 
 
 def test_frontend_owner_scenario_fields():
-    path = finders.find("app.js")
+    path = finders.find("owner.js")
     assert path is not None
     with open(path, encoding="utf-8") as app_file:
         script = app_file.read()
@@ -150,9 +200,17 @@ def test_frontend_owner_scenario_fields():
         "statusLabel(booking.status)",
         "подтверждена",
         "Предстоящих встреч нет",
-        "слот уже занят",
     ):
         assert fragment in script, fragment
+
+
+def test_frontend_guest_shows_conflict_message():
+    path = finders.find("app.js")
+    assert path is not None
+    with open(path, encoding="utf-8") as app_file:
+        script = app_file.read()
+    assert '"slot already booked": "слот уже занят"' in script
+    assert '"Ошибка: "' in script
 
 
 def test_frontend_reports_booking_success_after_reloading_slots():
@@ -170,6 +228,13 @@ def test_owners_and_event_types(client):
     r = client.get("/api/event-types/?owner_id=1")
     assert r.status_code == 200
     assert r.json()[0]["duration_minutes"] == 30
+
+
+def test_timestamps_are_utc(client):
+    today = moscow_now().date().isoformat()
+    slots = client.get(f"/api/slots/?owner_id=1&event_type_id=1&date={today}").json()
+    assert all(s["startAt"].endswith("Z") and s["endAt"].endswith("Z") for s in slots)
+    assert book(client).json()["slotStartAt"].endswith("Z")
 
 
 def test_create_event_type_for_owner(client):
@@ -402,12 +467,13 @@ def test_guest_happy_path_end_to_end(client):
 def test_slot_is_blocked_across_event_types(client):
     owner_id = client.get("/api/owners/").json()[0]["id"]
     second_type = create_type(client).json()
-    chosen = slot_iso()
+    day = (moscow_now() + timedelta(days=1)).date().isoformat()
+    first_slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id=1&date={day}"
+    chosen = next(s for s in client.get(first_slots_url).json() if s["isAvailable"])["startAt"]
     assert book(client, event_type_id=1, slotStartAt=chosen).status_code == 201
 
-    day = chosen[:10]
-    slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id={second_type['id']}&date={day}"
-    slots = {s["startAt"]: s for s in client.get(slots_url).json()}
+    second_slots_url = f"/api/slots/?owner_id={owner_id}&event_type_id={second_type['id']}&date={day}"
+    slots = {s["startAt"]: s for s in client.get(second_slots_url).json()}
     assert slots[chosen]["isAvailable"] is False
     assert book(client, event_type_id=second_type["id"], slotStartAt=chosen).status_code == 409
 

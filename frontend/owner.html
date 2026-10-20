@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Календарь звонков — владелец</title>
+  <link rel="stylesheet" href="{% static 'app.css' %}" />
+</head>
+<body>
+  <h1>Календарь звонков — владелец</h1>
+  <p><a href="/">К гостевой странице</a></p>
+
+  <label>Владелец <select id="owner"></select></label>
+
+  <h2>Типы встреч</h2>
+  <ul id="ownerTypes"></ul>
+  <form id="createType">
+    <input id="eventTypeTitle" placeholder="Название типа встречи" required />
+    <input id="eventTypeDescription" placeholder="Описание (необязательно)" />
+    <select id="eventTypeDuration" aria-label="Длительность, минут">
+      <option value="30">30 минут</option>
+    </select>
+    <button type="submit">Создать тип встречи</button>
+  </form>
+
+  <h2>Предстоящие встречи</h2>
+  <ul id="ownerBookings"></ul>
+  <p id="msg"></p>
+
+  <script src="{% static 'js/calendar-sdk.js' %}"></script>
+  <script src="{% static 'owner.js' %}"></script>
+</body>
+</html>

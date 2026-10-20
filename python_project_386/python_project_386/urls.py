@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index, name="index"),
+    path("owner/", views.owner_page, name="owner"),
     path("api/owners/", views.api_owners, name="api-owners"),
     path("api/event-types/", views.api_event_types, name="api-event-types"),
     path("api/slots/", views.api_slots, name="api-slots"),
