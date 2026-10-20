@@ -6,6 +6,8 @@
 
 Сервис бронирования звонков (каркас). Django-бэкенд (JSON API) + отдельный фронтенд в `frontend/` на сгенерированном SDK.
 
+Демо на Render: https://call-calendar-386.onrender.com
+
 Учебный проект Хекслета: https://ru.hexlet.io/programs/python
 Как это должно работать: https://files.hexlet.app/a/2ipc5m
 
