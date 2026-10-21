@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.5.1...python-project-386-v0.5.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* allow calendar.test host for hexlet checks ([721af97](https://github.com/Spring-Silver-Bird/python-project-386/commit/721af978fa609205b984a6bd4eac2cf97abfab55))
+
 ## [0.5.1](https://github.com/Spring-Silver-Bird/python-project-386/compare/python-project-386-v0.5.0...python-project-386-v0.5.1) (2026-10-20)
 
 
