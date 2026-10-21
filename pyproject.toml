@@ -1,6 +1,6 @@
 [project]
 name = "python-project-386"
-version = "0.5.0"
+version = "0.5.1"
 description = "Календарь звонков — сервис бронирования звонков (Django)"
 readme = "README.md"
 requires-python = ">=3.12"
