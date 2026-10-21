@@ -23,7 +23,7 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY:-django-insecure-dev-only-change-me}
       DEBUG: ${DEBUG:-False}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,calendar.test}
       POSTGRES_DB: ${POSTGRES_DB:-call_calendar}
       POSTGRES_USER: ${POSTGRES_USER:-call_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-call_password}
